@@ -755,6 +755,27 @@ a {
   font-weight: 600;
 }
 
+.about-banner {
+  background:
+    linear-gradient(100deg, rgba(7, 16, 28, 0.2), rgba(20, 32, 58, 0.08)),
+    #142033;
+}
+
+.about-panel {
+  padding: 8px 28px 28px;
+}
+
+.about-panel h3,
+.about-panel h4,
+.about-panel h5 {
+  color: #141820;
+}
+
+.about-panel .about-tools,
+.about-panel li {
+  color: rgba(20, 24, 32, 0.72);
+}
+
 .about h2 {
   margin: 0 0 28px;
   font-size: clamp(28px, 4vw, 44px);
