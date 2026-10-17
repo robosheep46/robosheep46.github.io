@@ -755,6 +755,54 @@ a {
   font-weight: 600;
 }
 
+.about h2 {
+  margin: 0 0 28px;
+  font-size: clamp(28px, 4vw, 44px);
+}
+
+.about h3,
+.about h4,
+.about h5 {
+  margin: 28px 0 10px;
+  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-weight: 600;
+}
+
+.about h3 {
+  font-size: 22px;
+}
+
+.about h4 {
+  font-size: 18px;
+}
+
+.about h5 {
+  margin-top: 18px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.about-tools,
+.about li {
+  max-width: 40em;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.about-tools {
+  margin: 0;
+}
+
+.about ul {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.about li + li {
+  margin-top: 6px;
+}
+
 .life h2 {
   margin: 0 0 28px;
   font-size: clamp(28px, 4vw, 44px);
