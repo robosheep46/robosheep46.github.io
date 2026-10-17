@@ -765,7 +765,61 @@ a {
 }
 
 .life-card {
-  margin: 0 0 36px;
+  display: none;
+  margin: 0;
+}
+
+.life-card.is-on {
+  display: block;
+}
+
+.album-stage {
+  position: relative;
+}
+
+.album-nav {
+  position: absolute;
+  top: 28vh;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(247, 244, 238, 0.75);
+  border-radius: 50%;
+  background: rgba(7, 16, 28, 0.35);
+  color: #f7f4ee;
+  cursor: pointer;
+}
+
+.album-prev {
+  left: 8px;
+}
+
+.album-next {
+  right: 8px;
+}
+
+.album-nav::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-top: 1.5px solid currentColor;
+  border-right: 1.5px solid currentColor;
+}
+
+.album-prev::before {
+  transform: translate(-30%, -50%) rotate(-135deg);
+}
+
+.album-next::before {
+  transform: translate(-70%, -50%) rotate(45deg);
+}
+
+.album-nav:disabled {
+  opacity: 0.28;
+  cursor: default;
 }
 
 .life-cover {

@@ -1,3 +1,34 @@
+document.querySelectorAll("[data-album]").forEach((album) => {
+  const cards = [...album.querySelectorAll(".life-card")];
+  const prev = album.querySelector(".album-prev");
+  const next = album.querySelector(".album-next");
+  const frame = album.querySelector(".album-frame");
+  if (!cards.length || !prev || !next || !frame) return;
+
+  let index = Math.max(0, cards.findIndex((card) => card.classList.contains("is-on")));
+  const show = (nextIndex) => {
+    index = Math.max(0, Math.min(cards.length - 1, nextIndex));
+    cards.forEach((card, i) => card.classList.toggle("is-on", i === index));
+    prev.disabled = index === 0;
+    next.disabled = index === cards.length - 1;
+  };
+
+  prev.addEventListener("click", () => show(index - 1));
+  next.addEventListener("click", () => show(index + 1));
+
+  let startX = 0;
+  frame.addEventListener("touchstart", (event) => {
+    startX = event.changedTouches[0].clientX;
+  }, { passive: true });
+  frame.addEventListener("touchend", (event) => {
+    const distance = event.changedTouches[0].clientX - startX;
+    if (distance > 40) show(index - 1);
+    if (distance < -40) show(index + 1);
+  }, { passive: true });
+
+  show(index);
+});
+
 document.querySelectorAll(".axis").forEach((axis) => {
   const root = axis.parentElement;
   const tabs = [...axis.querySelectorAll("[role='tab']")];

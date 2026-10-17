@@ -6,7 +6,7 @@
     <meta name="description" content="记录美好生活" />
     <meta name="theme-color" content="#07101c" />
     <title>记录美好生活｜故事</title>
-    <link rel="stylesheet" href="../styles.css?v=45" />
+    <link rel="stylesheet" href="../styles.css?v=46" />
   </head>
   <body>
     <a class="skip-link" href="#album">跳到正文</a>
@@ -18,22 +18,29 @@
 
     <main class="story life" id="album">
       <h1>记录美好生活</h1>
-      <div class="life-list">
-        <figure class="life-card">
-          <img src="../media/2026-10-17-pork.jpg" alt="斌哥给我夹的锅包肉" />
-          <figcaption>
-            <time>2026.10.17</time>
-            <p>斌哥给我夹的锅包肉</p>
-          </figcaption>
-        </figure>
-        <figure class="life-card">
-          <img src="../media/2026-10-17-stew.jpg" alt="第二次和斌哥一起吃铁锅炖" />
-          <figcaption>
-            <time>2026.10.17</time>
-            <p>第二次和斌哥一起吃铁锅炖</p>
-          </figcaption>
-        </figure>
+      <div class="album" data-album>
+        <div class="album-stage">
+          <button type="button" class="album-nav album-prev" aria-label="上一张"></button>
+          <div class="album-frame">
+            <figure class="life-card is-on">
+              <img src="../media/2026-10-17-pork.jpg" alt="斌哥给我夹的锅包肉" />
+              <figcaption>
+                <time>2026.10.17</time>
+                <p>斌哥给我夹的锅包肉</p>
+              </figcaption>
+            </figure>
+            <figure class="life-card">
+              <img src="../media/2026-10-17-stew.jpg" alt="第二次和斌哥一起吃铁锅炖" />
+              <figcaption>
+                <time>2026.10.17</time>
+                <p>第二次和斌哥一起吃铁锅炖</p>
+              </figcaption>
+            </figure>
+          </div>
+          <button type="button" class="album-nav album-next" aria-label="下一张"></button>
+        </div>
       </div>
     </main>
+    <script src="../script.js?v=12"></script>
   </body>
 </html>
