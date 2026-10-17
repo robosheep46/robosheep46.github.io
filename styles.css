@@ -785,8 +785,12 @@ a {
 .life-card img {
   display: block;
   width: 100%;
+  max-height: 58vh;
   height: auto;
+  object-fit: contain;
+  object-position: center center;
   border-radius: 24px;
+  background: rgba(7, 16, 28, 0.35);
 }
 
 .life-card figcaption {
