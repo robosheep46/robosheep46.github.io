@@ -88,11 +88,14 @@ document.querySelectorAll("[data-page-swipe]").forEach((root) => {
   };
   let startX = 0;
   let startY = 0;
+  let onAxis = false;
   root.addEventListener("touchstart", (event) => {
     startX = event.changedTouches[0].clientX;
     startY = event.changedTouches[0].clientY;
+    onAxis = Boolean(event.target.closest(".axis"));
   }, { passive: true });
   root.addEventListener("touchend", (event) => {
+    if (onAxis || event.target.closest(".axis")) return;
     const dx = event.changedTouches[0].clientX - startX;
     const dy = event.changedTouches[0].clientY - startY;
     if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return;
