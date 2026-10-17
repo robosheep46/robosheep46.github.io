@@ -1087,25 +1087,27 @@ a {
     transform: translateY(-50%);
   }
 
+  .after-motto {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    min-height: 0;
+  }
+
+  .after-motto .signal,
+  .after-motto .life-cover,
+  .after-motto .signal-banner {
+    height: 240px;
+    flex: none;
+  }
+
   .signal-banner {
     padding: 14px 14px 16px;
-  }
-
-  .signal-copy {
-    max-width: 100%;
-    padding-right: 0;
-  }
-
-  .signal-toggle {
-    top: 12px;
-    right: 12px;
-    bottom: auto;
   }
 
   .signal h2,
   .after-motto .signal h2 {
     margin: 8px 0 4px;
-    font-size: 15px;
+    font-size: 22px;
     line-height: 1.35;
     overflow-wrap: anywhere;
   }
