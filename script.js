@@ -105,6 +105,18 @@ const hero = document.querySelector(".hero");
 const frame = document.querySelector(".hero-frame");
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+if (!reduceMotion) {
+  document.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0) return;
+    const ring = document.createElement("span");
+    ring.className = "click-ripple";
+    ring.style.left = event.clientX + "px";
+    ring.style.top = event.clientY + "px";
+    document.body.appendChild(ring);
+    ring.addEventListener("animationend", () => ring.remove());
+  });
+}
+
 if (hero && frame && !reduceMotion) {
   let ticking = 0;
   const lerp = (from, to, amount) => from + (to - from) * amount;

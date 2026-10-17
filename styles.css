@@ -1086,8 +1086,37 @@ a {
   line-height: 1.95;
 }
 
+.click-ripple {
+  position: fixed;
+  z-index: 40;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border: 2px solid rgba(244, 239, 230, 0.9);
+  border-radius: 50%;
+  pointer-events: none;
+  mix-blend-mode: difference;
+  animation: click-ripple 680ms ease-out forwards;
+}
+
+@keyframes click-ripple {
+  from {
+    transform: scale(0.35);
+    opacity: 0.85;
+  }
+
+  to {
+    transform: scale(16);
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  .click-ripple {
+    animation: none;
   }
 }
