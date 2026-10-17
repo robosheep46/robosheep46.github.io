@@ -533,7 +533,25 @@ a {
 }
 
 .after-motto {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  width: min(calc(100% - 40px), 1040px);
+  margin: 8vh auto 6vh;
   min-height: 100svh;
+}
+
+.after-motto .shelf {
+  width: auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  scroll-margin-top: 84px;
+}
+
+.after-motto .signal h2 {
+  font-size: clamp(18px, 2vw, 28px);
 }
 
 .shelf {
