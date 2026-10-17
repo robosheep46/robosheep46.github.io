@@ -228,3 +228,37 @@ if (cards.length && !reduceMotion && "IntersectionObserver" in window) {
   }, { threshold: 0.22 });
   cards.forEach((card) => rises.observe(card));
 }
+
+document.querySelectorAll(".after-motto .shelf a").forEach((link) => {
+  const card = link.closest(".shelf");
+  if (!card) return;
+
+  const pop = () => {
+    card.classList.remove("is-duang");
+    void card.offsetWidth;
+    card.classList.add("is-duang");
+  };
+
+  link.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0) return;
+    pop();
+  });
+
+  link.addEventListener("click", (event) => {
+    if (reduceMotion) return;
+    if (event.defaultPrevented || event.button !== 0) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    if (!card.classList.contains("is-duang")) pop();
+    let gone = false;
+    const go = () => {
+      if (gone) return;
+      gone = true;
+      window.location.href = link.href;
+    };
+    card.addEventListener("animationend", (end) => {
+      if (end.animationName === "card-duang") go();
+    });
+    window.setTimeout(go, 520);
+  });
+});
