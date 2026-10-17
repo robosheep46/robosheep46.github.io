@@ -535,11 +535,27 @@ a {
 .after-motto {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: minmax(240px, 1fr) minmax(240px, 1fr);
   gap: 20px;
-  align-content: start;
-  align-items: start;
+  align-items: stretch;
   width: min(calc(100% - 40px), 1040px);
+  min-height: calc(100svh - 14vh);
   margin: 8vh auto 6vh;
+}
+
+.after-motto .signal,
+.after-motto .life-cover {
+  height: 100%;
+}
+
+.after-motto .signal {
+  display: flex;
+  flex-direction: column;
+}
+
+.after-motto .signal-banner {
+  flex: 1;
+  min-height: 240px;
 }
 
 .after-motto .shelf {
