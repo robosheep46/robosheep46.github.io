@@ -165,7 +165,7 @@ links.forEach((link) => {
 document.querySelectorAll(".signal").forEach((signal) => {
   const button = signal.querySelector(".signal-toggle");
   const panel = signal.querySelector(".signal-panel");
-  const label = button.querySelector(".signal-toggle-label");
+  const label = button && button.querySelector(".signal-toggle-label");
   if (!button || !panel || !label) return;
   button.addEventListener("click", () => {
     const open = button.getAttribute("aria-expanded") === "true";
