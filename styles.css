@@ -1202,7 +1202,7 @@ button:focus-visible {
 
 .click-ripple {
   position: fixed;
-  z-index: 40;
+  z-index: 70;
   width: 12px;
   height: 12px;
   margin: -6px 0 0 -6px;
