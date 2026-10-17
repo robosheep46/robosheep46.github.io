@@ -1086,6 +1086,34 @@ a {
     font-size: 30px;
     transform: translateY(-50%);
   }
+
+  .signal-banner {
+    padding: 14px 14px 16px;
+  }
+
+  .signal-copy {
+    max-width: 100%;
+    padding-right: 0;
+  }
+
+  .signal-toggle {
+    top: 12px;
+    right: 12px;
+    bottom: auto;
+  }
+
+  .signal h2,
+  .after-motto .signal h2 {
+    margin: 8px 0 4px;
+    font-size: 15px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .signal-deck {
+    font-size: 12px;
+    line-height: 1.45;
+  }
 }
 
 @media (max-width: 640px) {
