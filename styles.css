@@ -540,7 +540,6 @@ a {
   align-items: start;
   width: min(calc(100% - 40px), 1040px);
   margin: 8vh auto 6vh;
-  min-height: 100svh;
 }
 
 .after-motto .shelf {
