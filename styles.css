@@ -68,6 +68,16 @@ a {
   text-decoration: none;
 }
 
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a:focus,
+button:focus {
+  outline: none;
+}
+
 .skip-link {
   position: fixed;
   top: 12px;
@@ -116,14 +126,6 @@ a {
   color: var(--muted);
 }
 
-.top-link:hover,
-.top-link:focus-visible,
-.brand:focus-visible,
-.pill:focus-visible,
-.record:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 4px;
-}
 
 .hero {
   position: relative;
@@ -381,10 +383,6 @@ a {
   background: var(--ink);
 }
 
-.axis button:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 4px;
-}
 
 .passage[hidden] {
   display: none;
@@ -527,10 +525,6 @@ a {
 }
 
 .week-card:hover,
-.week-card:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 6px;
-}
 
 .after-motto {
   display: grid;
