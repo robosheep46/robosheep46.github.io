@@ -301,27 +301,27 @@ if (stage && frame && !reduceMotion) {
     pen.clearRect(0, 0, width, height);
     rippleIn -= dt;
     lightIn -= dt;
-    if (rippleIn <= 0 && ripples.length < 3) {
+    if (rippleIn <= 0 && ripples.length < 1) {
       ripples.push({
-        x: rand(width * 0.08, width * 0.92),
-        y: rand(height * 0.72, height * 0.93),
-        max: rand(64, 150),
+        x: rand(width * 0.12, width * 0.88),
+        y: rand(height * 0.74, height * 0.92),
+        max: rand(46, 96),
         age: 0,
-        life: rand(1700, 2400)
+        life: rand(2600, 3400)
       });
-      rippleIn = rand(2600, 5600);
+      rippleIn = rand(6200, 11000);
     }
-    if (lightIn <= 0 && lights.length < 2) {
+    if (lightIn <= 0 && lights.length < 1) {
       const warm = Math.random() < 0.5;
       lights.push({
-        x: rand(width * 0.16, width * 0.86),
-        y: rand(height * 0.05, height * 0.42),
-        radius: rand(80, 210),
-        rgb: warm ? "255, 210, 140" : "170, 205, 255",
+        x: rand(width * 0.2, width * 0.82),
+        y: rand(height * 0.08, height * 0.4),
+        radius: rand(120, 240),
+        rgb: warm ? "255, 214, 160" : "176, 206, 255",
         age: 0,
-        life: rand(2400, 3600)
+        life: rand(3800, 5200)
       });
-      lightIn = rand(3200, 7000);
+      lightIn = rand(7000, 13000);
     }
 
     for (let i = lights.length - 1; i >= 0; i -= 1) {
@@ -332,11 +332,10 @@ if (stage && frame && !reduceMotion) {
         lights.splice(i, 1);
         continue;
       }
-      const alpha = Math.sin(Math.PI * t);
+      const alpha = Math.sin(Math.PI * t) * 0.22;
       const glow = pen.createRadialGradient(light.x, light.y, 0, light.x, light.y, light.radius);
-      glow.addColorStop(0, `rgba(255, 236, 186, ${alpha * 0.88})`);
-      glow.addColorStop(0.22, `rgba(${light.rgb}, ${alpha * 0.5})`);
-      glow.addColorStop(0.6, `rgba(${light.rgb}, ${alpha * 0.14})`);
+      glow.addColorStop(0, `rgba(${light.rgb}, ${alpha})`);
+      glow.addColorStop(0.45, `rgba(${light.rgb}, ${alpha * 0.35})`);
       glow.addColorStop(1, `rgba(${light.rgb}, 0)`);
       pen.fillStyle = glow;
       pen.beginPath();
@@ -353,22 +352,14 @@ if (stage && frame && !reduceMotion) {
         continue;
       }
       const grow = 1 - (1 - t) ** 2;
-      const fade = Math.sin(Math.PI * t);
-      for (let ring = 0; ring < 2; ring += 1) {
-        const spread = Math.max(0, grow - ring * 0.14);
-        const rx = Math.max(1, ripple.max * spread);
-        const ry = Math.max(1, rx * 0.22);
-        pen.beginPath();
-        pen.ellipse(ripple.x, ripple.y, rx, ry, 0, 0, Math.PI * 2);
-        pen.strokeStyle = `rgba(6, 18, 36, ${fade * 0.34})`;
-        pen.lineWidth = 6;
-        pen.stroke();
-        pen.beginPath();
-        pen.ellipse(ripple.x, ripple.y, rx, ry, 0, 0, Math.PI * 2);
-        pen.strokeStyle = `rgba(255, 250, 236, ${fade * (0.92 - ring * 0.18)})`;
-        pen.lineWidth = 1.8;
-        pen.stroke();
-      }
+      const fade = Math.sin(Math.PI * t) * 0.28;
+      const rx = Math.max(1, ripple.max * grow);
+      const ry = Math.max(1, rx * 0.22);
+      pen.beginPath();
+      pen.ellipse(ripple.x, ripple.y, rx, ry, 0, 0, Math.PI * 2);
+      pen.strokeStyle = `rgba(255, 248, 236, ${fade})`;
+      pen.lineWidth = 1;
+      pen.stroke();
     }
   };
 
