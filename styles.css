@@ -823,6 +823,7 @@ a {
 }
 
 .life-cover {
+  position: relative;
   display: block;
   height: 240px;
   border-radius: 28px;
@@ -830,10 +831,41 @@ a {
 }
 
 .life-cover img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center center;
+}
+
+.life-cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(7, 16, 28, 0.5), transparent 48%);
+}
+
+.life-kicker {
+  position: absolute;
+  z-index: 1;
+  top: 22px;
+  left: 22px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(247, 244, 238, 0.92);
+  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+}
+
+.life-kicker span {
+  padding: 4px 10px;
+  border: 1px solid rgba(247, 244, 238, 0.45);
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
 }
 
 .life-card img {
