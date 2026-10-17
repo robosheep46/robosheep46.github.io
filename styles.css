@@ -908,6 +908,10 @@ a {
   object-position: center center;
 }
 
+.about-cover img {
+  object-position: 82% 100%;
+}
+
 .life-cover::after {
   content: "";
   position: absolute;
