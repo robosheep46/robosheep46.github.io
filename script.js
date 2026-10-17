@@ -262,3 +262,133 @@ document.querySelectorAll(".after-motto .shelf a").forEach((link) => {
     window.setTimeout(go, 520);
   });
 });
+
+const stage = document.querySelector(".hero-live");
+if (stage && frame && !reduceMotion) {
+  const pen = stage.getContext("2d");
+  const ripples = [];
+  const lights = [];
+  let rippleIn = 1400;
+  let lightIn = 600;
+  const boot = document.querySelector(".boot");
+  if (boot && !boot.classList.contains("is-done")) {
+    rippleIn = 9000;
+    lightIn = 9000;
+    const watch = new MutationObserver(() => {
+      if (!boot.classList.contains("is-done")) return;
+      rippleIn = 1100;
+      lightIn = 350;
+      watch.disconnect();
+    });
+    watch.observe(boot, { attributes: true });
+  }
+  let last = 0;
+  let playing = true;
+  const rand = (min, max) => min + Math.random() * (max - min);
+
+  const fit = () => {
+    const width = frame.clientWidth;
+    const height = frame.clientHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    stage.width = Math.max(1, Math.round(width * dpr));
+    stage.height = Math.max(1, Math.round(height * dpr));
+    pen.setTransform(dpr, 0, 0, dpr, 0, 0);
+  };
+
+  const draw = (dt) => {
+    const width = frame.clientWidth;
+    const height = frame.clientHeight;
+    pen.clearRect(0, 0, width, height);
+    rippleIn -= dt;
+    lightIn -= dt;
+    if (rippleIn <= 0 && ripples.length < 3) {
+      ripples.push({
+        x: rand(width * 0.08, width * 0.92),
+        y: rand(height * 0.72, height * 0.93),
+        max: rand(64, 150),
+        age: 0,
+        life: rand(1700, 2400)
+      });
+      rippleIn = rand(2600, 5600);
+    }
+    if (lightIn <= 0 && lights.length < 2) {
+      const warm = Math.random() < 0.5;
+      lights.push({
+        x: rand(width * 0.16, width * 0.86),
+        y: rand(height * 0.05, height * 0.42),
+        radius: rand(80, 210),
+        rgb: warm ? "255, 210, 140" : "170, 205, 255",
+        age: 0,
+        life: rand(2400, 3600)
+      });
+      lightIn = rand(3200, 7000);
+    }
+
+    for (let i = lights.length - 1; i >= 0; i -= 1) {
+      const light = lights[i];
+      light.age += dt;
+      const t = light.age / light.life;
+      if (t >= 1) {
+        lights.splice(i, 1);
+        continue;
+      }
+      const alpha = Math.sin(Math.PI * t);
+      const glow = pen.createRadialGradient(light.x, light.y, 0, light.x, light.y, light.radius);
+      glow.addColorStop(0, `rgba(255, 236, 186, ${alpha * 0.88})`);
+      glow.addColorStop(0.22, `rgba(${light.rgb}, ${alpha * 0.5})`);
+      glow.addColorStop(0.6, `rgba(${light.rgb}, ${alpha * 0.14})`);
+      glow.addColorStop(1, `rgba(${light.rgb}, 0)`);
+      pen.fillStyle = glow;
+      pen.beginPath();
+      pen.arc(light.x, light.y, light.radius, 0, Math.PI * 2);
+      pen.fill();
+    }
+
+    for (let i = ripples.length - 1; i >= 0; i -= 1) {
+      const ripple = ripples[i];
+      ripple.age += dt;
+      const t = ripple.age / ripple.life;
+      if (t >= 1) {
+        ripples.splice(i, 1);
+        continue;
+      }
+      const grow = 1 - (1 - t) ** 2;
+      const fade = Math.sin(Math.PI * t);
+      for (let ring = 0; ring < 2; ring += 1) {
+        const spread = Math.max(0, grow - ring * 0.14);
+        const rx = Math.max(1, ripple.max * spread);
+        const ry = Math.max(1, rx * 0.22);
+        pen.beginPath();
+        pen.ellipse(ripple.x, ripple.y, rx, ry, 0, 0, Math.PI * 2);
+        pen.strokeStyle = `rgba(6, 18, 36, ${fade * 0.34})`;
+        pen.lineWidth = 6;
+        pen.stroke();
+        pen.beginPath();
+        pen.ellipse(ripple.x, ripple.y, rx, ry, 0, 0, Math.PI * 2);
+        pen.strokeStyle = `rgba(255, 250, 236, ${fade * (0.92 - ring * 0.18)})`;
+        pen.lineWidth = 1.8;
+        pen.stroke();
+      }
+    }
+  };
+
+  const loop = (now) => {
+    if (!playing) return;
+    const dt = last ? Math.min(40, now - last) : 16;
+    last = now;
+    const box = hero.getBoundingClientRect();
+    if (box.bottom > 0 && box.top < window.innerHeight) draw(dt);
+    requestAnimationFrame(loop);
+  };
+
+  fit();
+  window.addEventListener("resize", fit);
+  document.addEventListener("visibilitychange", () => {
+    playing = !document.hidden;
+    if (playing) {
+      last = 0;
+      requestAnimationFrame(loop);
+    }
+  });
+  requestAnimationFrame(loop);
+}
