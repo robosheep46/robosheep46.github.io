@@ -213,3 +213,18 @@ if (hero && frame && !reduceMotion) {
   document.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("resize", onScroll);
 }
+
+const cards = document.querySelectorAll(".after-motto .shelf");
+if (cards.length && !reduceMotion && "IntersectionObserver" in window) {
+  let wave = 0;
+  const rises = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      entry.target.style.animationDelay = wave * 90 + "ms";
+      wave += 1;
+      entry.target.classList.add("is-in");
+      rises.unobserve(entry.target);
+    });
+  }, { threshold: 0.22 });
+  cards.forEach((card) => rises.observe(card));
+}
