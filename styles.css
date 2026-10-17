@@ -755,6 +755,45 @@ a {
   font-weight: 600;
 }
 
+.life h2 {
+  margin: 0 0 28px;
+  font-size: clamp(28px, 4vw, 44px);
+}
+
+.life-list:empty + .waiting {
+  margin-top: 0;
+}
+
+.life-card {
+  margin: 0 0 36px;
+}
+
+.life-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 24px;
+}
+
+.life-card figcaption {
+  margin-top: 14px;
+}
+
+.life-card time {
+  color: var(--muted);
+  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+}
+
+.life-card p {
+  max-width: 36em;
+  margin: 8px 0 0;
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1.7;
+}
+
 .site-foot {
   width: min(calc(100% - 40px), var(--max));
   margin: 0 auto;
