@@ -29,6 +29,26 @@ document.querySelectorAll("[data-album]").forEach((album) => {
   show(index);
 });
 
+document.querySelectorAll("[data-page-swipe]").forEach((root) => {
+  const prev = root.querySelector("a.album-prev");
+  const next = root.querySelector("a.album-next");
+  const go = (link) => {
+    if (link && link.href) location.href = link.href;
+  };
+  let startX = 0;
+  let startY = 0;
+  root.addEventListener("touchstart", (event) => {
+    startX = event.changedTouches[0].clientX;
+    startY = event.changedTouches[0].clientY;
+  }, { passive: true });
+  root.addEventListener("touchend", (event) => {
+    const dx = event.changedTouches[0].clientX - startX;
+    const dy = event.changedTouches[0].clientY - startY;
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return;
+    go(dx < 0 ? next : prev);
+  }, { passive: true });
+});
+
 document.querySelectorAll(".axis").forEach((axis) => {
   const root = axis.parentElement;
   const tabs = [...axis.querySelectorAll("[role='tab']")];

@@ -570,6 +570,10 @@ a {
   font-size: clamp(18px, 2vw, 28px);
 }
 
+.signal-link .signal-copy {
+  padding-right: 0;
+}
+
 .shelf {
   width: min(calc(100% - 40px), 1040px);
   margin: 0 auto;
@@ -899,6 +903,12 @@ a {
 
 .album-next {
   right: 8px;
+}
+
+[data-page-swipe] .album-nav {
+  position: fixed;
+  top: 50%;
+  margin-top: -22px;
 }
 
 .album-nav::before {
