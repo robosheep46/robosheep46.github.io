@@ -1,0 +1,100 @@
+document.querySelectorAll(".axis").forEach((axis) => {
+  const root = axis.parentElement;
+  const tabs = [...axis.querySelectorAll("[role='tab']")];
+  const panels = [...root.querySelectorAll(":scope > .passage")];
+  if (!tabs.length || !panels.length) return;
+
+  const show = (id) => {
+    tabs.forEach((tab) => {
+      const on = tab.getAttribute("aria-controls") === id;
+      tab.setAttribute("aria-selected", on ? "true" : "false");
+      tab.tabIndex = on ? 0 : -1;
+    });
+    panels.forEach((panel) => {
+      panel.hidden = panel.id !== id;
+    });
+  };
+
+  const fromHash = panels.find((panel) => panel.id === location.hash.slice(1));
+  show((fromHash || panels[0]).id);
+
+  tabs.forEach((tab, index) => {
+    tab.addEventListener("click", () => {
+      const id = tab.getAttribute("aria-controls");
+      show(id);
+      history.replaceState(null, "", "#" + id);
+      tab.scrollIntoView({ inline: "center", block: "nearest" });
+    });
+
+    tab.addEventListener("keydown", (event) => {
+      if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+      event.preventDefault();
+      const next =
+        event.key === "ArrowRight"
+          ? (index + 1) % tabs.length
+          : (index - 1 + tabs.length) % tabs.length;
+      tabs[next].focus();
+      tabs[next].click();
+    });
+  });
+});
+
+const links = document.querySelectorAll('a[href^="#"]');
+
+links.forEach((link) => {
+  link.addEventListener("click", (event) => {
+    const id = link.getAttribute("href");
+    if (!id || id === "#") return;
+    const target = document.querySelector(id);
+    if (!target) return;
+    event.preventDefault();
+    target.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      block: "start",
+    });
+    target.setAttribute("tabindex", "-1");
+    target.focus({ preventScroll: true });
+  });
+});
+
+document.querySelectorAll(".signal").forEach((signal) => {
+  const button = signal.querySelector(".signal-toggle");
+  const panel = signal.querySelector(".signal-panel");
+  const label = button.querySelector(".signal-toggle-label");
+  if (!button || !panel || !label) return;
+  button.addEventListener("click", () => {
+    const open = button.getAttribute("aria-expanded") === "true";
+    button.setAttribute("aria-expanded", open ? "false" : "true");
+    panel.hidden = open;
+    label.textContent = open ? "展开" : "收起";
+  });
+});
+
+const hero = document.querySelector(".hero");
+const frame = document.querySelector(".hero-frame");
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+if (hero && frame && !reduceMotion) {
+  let ticking = 0;
+  const lerp = (from, to, amount) => from + (to - from) * amount;
+  const ease = (amount) =>
+    amount < 0.5 ? 2 * amount * amount : 1 - ((-2 * amount + 2) ** 2) / 2;
+
+  const tilt = () => {
+    const height = hero.offsetHeight || 1;
+    const progress = Math.min(1, Math.max(0, window.scrollY / (height * 0.5)));
+    const eased = ease(progress);
+    frame.style.clipPath = `polygon(${lerp(0, 14, eased)}% 0%, ${lerp(100, 72, eased)}% 0%, ${lerp(100, 88, eased)}% ${lerp(100, 90, eased)}%, 0% ${lerp(100, 95, eased)}%)`;
+    frame.style.borderRadius = `0% 0% ${lerp(0, 40, eased)}% ${lerp(0, 10, eased)}%`;
+  };
+
+  const onScroll = () => {
+    cancelAnimationFrame(ticking);
+    ticking = requestAnimationFrame(tilt);
+  };
+
+  tilt();
+  window.addEventListener("scroll", onScroll, { passive: true });
+  document.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll);
+}

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="如果人生中哪一件事让我改变最大，第一件事就是打 RM。"
+    />
+    <meta name="theme-color" content="#07101c" />
+    <title>故事</title>
+    <link rel="stylesheet" href="./styles.css?v=38" />
+  </head>
+  <body>
+    <a class="skip-link" href="#turn">跳到正文</a>
+
+    <header class="topbar">
+      <a class="brand" href="./index.html">故事</a>
+      <nav class="nav" aria-label="页面">
+        <a class="top-link" href="#turn">这一年</a>
+        <a class="top-link" href="#archive">档案</a>
+        <a class="top-link" href="#weekly">周报</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" aria-label="一个人坐在夜里看星空">
+        <p class="sign sign-under" aria-hidden="true">robosheep</p>
+        <p class="hero-answer hero-answer-under" aria-hidden="true">影响最大的一件事，是 <span>robomaster</span>。<br />第二件，是 <span>anever</span>。</p>
+        <div class="hero-frame">
+          <picture>
+            <source
+              media="(max-width: 760px)"
+              srcset="./media/opening-phone.jpg?v=4"
+            />
+            <img
+              src="./media/opening.jpg?v=13"
+              alt="一个人坐在水里，看着满天的星"
+            />
+          </picture>
+          <div class="hero-shade" aria-hidden="true"></div>
+          <p class="sign">robosheep</p>
+          <p class="hero-answer">影响最大的一件事，是 <span>robomaster</span>。<br />第二件，是 <span>anever</span>。</p>
+        </div>
+        <div class="hero-copy">
+          <h1>welcome</h1>
+          <a class="pill" href="#turn">往下看</a>
+        </div>
+      </section>
+
+      <section class="invite" id="turn" aria-labelledby="turn-title">
+        <p class="invite-name">robosheep</p>
+        <h2 id="turn-title">不无聊、不冰冷、<br />不孤单地过好每一天。</h2>
+      </section>
+
+      <div class="after-motto">
+      <section class="chapter shelf" id="archive" aria-labelledby="archive-title">
+        <article class="signal">
+          <div class="signal-banner">
+            <img src="./media/archive-cover.jpg?v=1" alt="" />
+            <div class="signal-shade" aria-hidden="true"></div>
+            <div class="signal-copy">
+              <p class="signal-kicker"><span>档案</span></p>
+              <h2 id="archive-title"><span class="turn-name">robomaster</span> / <span class="turn-name">anever</span></h2>
+            </div>
+            <button type="button" class="signal-toggle" aria-expanded="false" aria-controls="archive-list">
+              <span class="signal-toggle-label">展开</span>
+              <span class="signal-mark" aria-hidden="true"></span>
+            </button>
+          </div>
+          <div class="signal-panel" id="archive-list" hidden>
+            <ol class="signal-list">
+              <li>
+                <a href="./stories/2023-robomaster.html">
+                  <span>01</span>
+                  <strong class="turn-name">robomaster</strong>
+                  <em>2023</em>
+                </a>
+              </li>
+              <li>
+                <div>
+                  <span>02</span>
+                  <strong class="turn-name">anever</strong>
+                  <em>下一份，还没写。</em>
+                </div>
+              </li>
+            </ol>
+          </div>
+        </article>
+      </section>
+
+      <section class="chapter shelf" id="weekly" aria-labelledby="weekly-title">
+        <article class="signal">
+          <div class="signal-banner">
+            <img src="./media/weekly-cover.jpg?v=1" alt="" />
+            <div class="signal-shade" aria-hidden="true"></div>
+            <div class="signal-copy">
+              <p class="signal-kicker"><span>周报</span>2026.10.10</p>
+              <h2 id="weekly-title">本周是美好且令我超级开心的一周</h2>
+              <p class="signal-deck">启俊的生日，王博的到来。</p>
+            </div>
+            <button type="button" class="signal-toggle" aria-expanded="false" aria-controls="weekly-list">
+              <span class="signal-toggle-label">展开</span>
+              <span class="signal-mark" aria-hidden="true"></span>
+            </button>
+          </div>
+          <div class="signal-panel" id="weekly-list" hidden>
+            <ol class="week-index">
+              <li>
+                <a href="./stories/2026-10-10.html">
+                  <time>2026.10.10</time>
+                  <strong>本周是美好且令我超级开心的一周</strong>
+                </a>
+              </li>
+            </ol>
+          </div>
+        </article>
+      </section>
+      </div>
+    </main>
+
+    <footer class="site-foot">
+      <p>自 2023 年起</p>
+    </footer>
+
+    <script src="./script.js?v=11"></script>
+  </body>
+</html>
