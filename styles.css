@@ -1,3 +1,11 @@
+@font-face {
+  font-family: "Robosheep Script";
+  src: url("./fonts/Caveat.ttf") format("truetype");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   color-scheme: dark;
   --night: #07101c;
@@ -158,7 +166,7 @@ a {
   right: max(36px, 6vw);
   margin: 0;
   color: rgba(244, 239, 230, 0.95);
-  font-family: "Segoe Script", "Lucida Handwriting", cursive;
+  font-family: "Segoe Script", "Robosheep Script", cursive;
   font-size: clamp(36px, 4.4vw, 68px);
   line-height: 1;
   text-shadow: 0 0 24px rgba(186, 214, 255, 0.5);
@@ -176,7 +184,7 @@ a {
 .invite-name {
   margin: 0 0 22px;
   color: rgba(20, 24, 32, 0.46);
-  font-family: "Segoe Script", "Lucida Handwriting", cursive;
+  font-family: "Segoe Script", "Robosheep Script", cursive;
   font-size: 30px;
   text-align: center;
 }
@@ -819,8 +827,10 @@ a {
 
 @media (max-width: 760px) {
   .sign {
-    top: 158px;
+    top: 50%;
+    right: max(28px, 6vw);
     font-size: 30px;
+    transform: translateY(-50%);
   }
 }
 
