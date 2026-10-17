@@ -1,3 +1,54 @@
+(() => {
+  const boot = document.querySelector(".boot");
+  if (!boot) return;
+  const fill = boot.querySelector(".boot-bar span");
+  const images = [...document.images];
+  let total = images.length;
+  let done = images.filter((img) => img.complete).length;
+  let closed = false;
+
+  const paint = () => {
+    const ratio = total === 0 ? 1 : done / total;
+    fill.style.transform = "scaleX(" + ratio + ")";
+    boot.setAttribute("aria-valuenow", String(Math.round(ratio * 100)));
+    if (!closed && done >= total) {
+      closed = true;
+      boot.classList.add("is-done");
+      window.setTimeout(() => boot.remove(), 480);
+    }
+  };
+
+  const mark = () => {
+    done += 1;
+    paint();
+  };
+
+  images.forEach((img) => {
+    if (img.complete) return;
+    img.addEventListener("load", mark, { once: true });
+    img.addEventListener("error", mark, { once: true });
+  });
+
+  const background = getComputedStyle(document.body, "::before").backgroundImage || "";
+  const source = background.match(/url\((['"]?)(.*?)\1\)/);
+  if (source && source[2] && source[2] !== "none") {
+    total += 1;
+    let noted = false;
+    const once = () => {
+      if (noted) return;
+      noted = true;
+      mark();
+    };
+    const probe = new Image();
+    probe.addEventListener("load", once, { once: true });
+    probe.addEventListener("error", once, { once: true });
+    probe.src = source[2];
+    if (probe.complete) once();
+  }
+
+  paint();
+})();
+
 document.querySelectorAll("[data-album]").forEach((album) => {
   const cards = [...album.querySelectorAll(".life-card")];
   const prev = album.querySelector(".album-prev");
