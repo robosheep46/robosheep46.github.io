@@ -13,7 +13,6 @@
   const momentFields = document.querySelector("[data-moment-fields]");
   const weeklyFields = document.querySelector("[data-weekly-fields]");
   const saveMessage = document.querySelector("[data-save-message]");
-  const importButton = document.querySelector("[data-import-weeklies]");
   const commentsTab = document.querySelector("[data-comments-tab]");
   const postControls = document.querySelector("[data-post-controls]");
   const postEditor = document.querySelector("[data-post-editor]");
@@ -244,7 +243,6 @@
 
   const renderPostList = () => {
     const visible = posts.filter((post) => post.kind === kind);
-    importButton.hidden = kind !== "weekly" || visible.length > 0;
     if (!visible.length) {
       postList.innerHTML = '<p class="admin-empty">还没有内容。</p>';
       return;
@@ -413,21 +411,6 @@
     resetEditor();
   };
 
-  const importLegacyWeeklies = async () => {
-    importButton.disabled = true;
-    try {
-      const rows = store.legacyWeeklies.map(({ id, ...post }) => ({ ...post }));
-      const { error } = await client.from("posts").upsert(rows, { onConflict: "kind,slug" });
-      if (error) throw error;
-      await loadPosts();
-      resetEditor();
-    } catch (error) {
-      setMessage(saveMessage, error.message || "导入失败", "error");
-    } finally {
-      importButton.disabled = false;
-    }
-  };
-
   const showStudio = async (session) => {
     const { data: isAdmin, error } = await client.rpc("is_site_admin");
     if (error || !isAdmin) {
@@ -482,7 +465,6 @@
   document.querySelector("[data-new-post]").addEventListener("click", resetEditor);
   document.querySelector("[data-add-section]").addEventListener("click", () => addSection());
   document.querySelector("[data-delete-post]").addEventListener("click", deletePost);
-  importButton.addEventListener("click", importLegacyWeeklies);
   postForm.addEventListener("submit", savePost);
 
   client.auth.getSession().then(({ data }) => {

@@ -4286,15 +4286,9 @@ body.is-route-leaving > .topbar {
   color: #fff;
 }
 
-.admin-new,
-.admin-import {
+.admin-new {
   width: 100%;
   margin-bottom: 8px;
-}
-
-.admin-import {
-  border-color: #c59618 !important;
-  color: #785800 !important;
 }
 
 .admin-post-list {
