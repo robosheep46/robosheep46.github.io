@@ -425,12 +425,12 @@ button:focus-visible {
   letter-spacing: 0.18em;
 }
 
-.passage h2 {
+.passage > h2 {
   margin: 0 0 28px;
   font-size: clamp(32px, 5vw, 52px);
 }
 
-.passage p {
+.passage > p {
   max-width: 40em;
   margin: 0 0 1.15em;
   color: var(--ink);
@@ -454,7 +454,7 @@ button:focus-visible {
   line-height: 0.92;
 }
 
-.chapter-turn .passage h2 {
+.chapter-turn .passage > h2 {
   max-width: none;
   margin: 0 0 28px;
   font-size: clamp(32px, 5vw, 52px);
@@ -1234,12 +1234,12 @@ button:focus-visible {
   width: min(calc(100% - 40px), 920px);
 }
 
-.story .passage h2 {
+.story .passage > h2 {
   margin: 0 0 28px;
   font-size: clamp(32px, 5vw, 52px);
 }
 
-.story .passage p {
+.story .passage > p {
   max-width: 40em;
   color: var(--ink);
   font-size: 18px;
@@ -3459,36 +3459,21 @@ body.is-route-leaving > .topbar {
   margin: 0;
   color: #f7f4ed;
   font-family: "Noto Serif SC", "Songti SC", SimSun, serif;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 500;
   letter-spacing: 0;
-}
-
-.weekly-reader .comments-head h2 {
-  font-size: 20px;
-}
-
-.weekly-reader .comments-section .comment-bubble > p {
-  font-size: 14px;
-}
-
-.robomaster-page .comments-head h2 {
-  font-size: 20px;
-}
-
-.robomaster-page .comments-section .comment-bubble > p {
-  font-size: 14px;
 }
 
 .comments-list {
   margin-top: 20px;
 }
 
-.comments-state {
+.comments-section .comments-state {
   margin: 0;
   padding: 20px 0;
   color: rgba(244, 239, 230, 0.56);
   font-size: 14px;
+  line-height: 1.7;
 }
 
 .comment-item {
@@ -3584,7 +3569,7 @@ body.is-route-leaving > .topbar {
   margin: 8px 0 0;
   color: rgba(244, 239, 230, 0.84);
   font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.75;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -3745,11 +3730,12 @@ body.is-route-leaving > .topbar {
   opacity: 0.55;
 }
 
-.comment-message {
+.comments-section .comment-message {
   min-height: 20px;
   margin: -4px 0 0;
   color: rgba(244, 239, 230, 0.55);
   font-size: 13px;
+  line-height: 1.5;
 }
 
 .comment-message[data-tone="error"] {
