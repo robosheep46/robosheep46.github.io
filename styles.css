@@ -1994,6 +1994,10 @@ body.is-route-leaving > .topbar {
     padding: 78px 14px 18px;
   }
 
+  .hub-about {
+    order: -3;
+  }
+
   .hub-tools {
     grid-template-columns: minmax(0, 1fr) 48px;
   }
