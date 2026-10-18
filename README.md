@@ -13,7 +13,7 @@ npx serve .
 ## 配置 Supabase
 
 1. 在 Supabase 创建一个免费项目。
-2. 在 SQL Editor 中执行 [`supabase/setup.sql`](./supabase/setup.sql)。
+2. 在 SQL Editor 中执行 [`supabase/setup.sql`](./supabase/setup.sql)，创建内容、评论、权限和图片存储结构。
 3. 在 Authentication > Users 中创建唯一的站长邮箱密码用户。
 4. 修改并执行 [`supabase/grant-admin.sql`](./supabase/grant-admin.sql)，把占位邮箱替换成站长邮箱。
 5. 在 Supabase Project Settings > API 中找到 Project URL 和 anon public key。
@@ -26,4 +26,4 @@ npx serve .
 - `/stories/moments.html`：公开动态时间线
 - `/admin.html`：私人发布后台
 
-后台支持草稿、公开、隐藏、编辑和删除。上传图片会在浏览器中压缩为 JPEG，从而移除原图中的 EXIF 定位信息。
+后台支持草稿、公开、隐藏、编辑、删除和评论管理。公开评论无需注册，受长度、一级回复、发送间隔和 RLS 权限约束；只有登记为站长的账号可以删除。上传图片会在浏览器中压缩为 JPEG，从而移除原图中的 EXIF 定位信息。

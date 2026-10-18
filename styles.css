@@ -3350,6 +3350,255 @@ body.is-route-leaving > .topbar {
   opacity: 0.55;
 }
 
+/* Public comments */
+.comments-section {
+  margin-top: 72px;
+  padding-top: 34px;
+  border-top: 1px solid rgba(235, 240, 252, 0.18);
+  color: #f4efe6;
+  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.comments-section[hidden] {
+  display: none;
+}
+
+.comments-head,
+.comment-form-foot,
+.comment-item > header,
+.comment-replying {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.comments-head > div {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+.comments-head span,
+.comments-count,
+.comment-item time,
+.comment-form small {
+  color: rgba(244, 239, 230, 0.5);
+  font-size: 12px;
+}
+
+.comments-head > div > span {
+  color: #f2d293;
+  letter-spacing: 0.12em;
+}
+
+.comments-head h2 {
+  margin: 0;
+  color: #f7f4ed;
+  font-family: "Noto Serif SC", "Songti SC", SimSun, serif;
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.comments-list {
+  margin-top: 20px;
+}
+
+.comments-state {
+  margin: 0;
+  padding: 20px 0;
+  color: rgba(244, 239, 230, 0.56);
+  font-size: 14px;
+}
+
+.comment-item {
+  padding: 20px 0;
+  border-top: 1px solid rgba(235, 240, 252, 0.11);
+}
+
+.comment-item > header {
+  justify-content: flex-start;
+}
+
+.comment-item strong {
+  color: #f7f4ed;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.comments-section .comment-item > p {
+  max-width: none;
+  margin: 9px 0 0;
+  color: rgba(244, 239, 230, 0.84);
+  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 15px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.comment-reply-button {
+  margin-top: 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #f2d293;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.comment-replies {
+  margin: 17px 0 0 18px;
+  padding-left: 18px;
+  border-left: 1px solid rgba(242, 210, 147, 0.32);
+}
+
+.comment-item-reply {
+  padding: 14px 0;
+  border: 0;
+}
+
+.comment-form {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.32fr) minmax(0, 1fr);
+  gap: 14px 18px;
+  margin-top: 26px;
+}
+
+.comment-form label:not(.comment-honeypot) {
+  display: grid;
+  gap: 8px;
+  color: rgba(244, 239, 230, 0.58);
+  font-size: 12px;
+}
+
+.comment-form input,
+.comment-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(235, 240, 252, 0.17);
+  border-radius: 4px;
+  outline: 0;
+  background: rgba(4, 12, 26, 0.34);
+  color: #f7f4ed;
+  font: inherit;
+}
+
+.comment-form input {
+  height: 44px;
+  padding: 0 12px;
+}
+
+.comment-form textarea {
+  min-height: 112px;
+  padding: 11px 12px;
+  resize: vertical;
+  line-height: 1.65;
+}
+
+.comment-form input:focus,
+.comment-form textarea:focus {
+  border-color: rgba(242, 210, 147, 0.62);
+}
+
+.comment-replying,
+.comment-form-foot,
+.comment-message {
+  grid-column: 1 / -1;
+}
+
+.comment-replying {
+  padding: 10px 12px;
+  border-left: 2px solid #f2d293;
+  background: rgba(242, 210, 147, 0.07);
+  color: rgba(244, 239, 230, 0.72);
+  font-size: 13px;
+}
+
+.comment-replying[hidden] {
+  display: none;
+}
+
+.comment-replying button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #f2d293;
+  cursor: pointer;
+}
+
+.comment-form-foot {
+  justify-content: flex-end;
+}
+
+.comment-form-foot button {
+  min-width: 86px;
+  height: 38px;
+  border: 1px solid rgba(242, 210, 147, 0.55);
+  border-radius: 4px;
+  background: rgba(242, 210, 147, 0.11);
+  color: #f7e0ae;
+  cursor: pointer;
+}
+
+.comment-form-foot button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.comment-message {
+  min-height: 20px;
+  margin: -4px 0 0;
+  color: rgba(244, 239, 230, 0.55);
+  font-size: 13px;
+}
+
+.comment-message[data-tone="error"] {
+  color: #ffb4aa;
+}
+
+.comment-message[data-tone="success"] {
+  color: #c8e6c9;
+}
+
+.comment-honeypot {
+  position: fixed !important;
+  left: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+}
+
+.album-comment-panels {
+  margin-top: 10px;
+}
+
+.album-comment-panels .comments-section {
+  margin-top: 42px;
+}
+
+@media (max-width: 760px) {
+  .comments-section {
+    margin-top: 54px;
+    padding-top: 28px;
+  }
+
+  .comment-form {
+    grid-template-columns: 1fr;
+  }
+
+  .comment-nickname,
+  .comment-body {
+    grid-column: 1;
+  }
+
+  .comment-replies {
+    margin-left: 8px;
+    padding-left: 14px;
+  }
+}
+
 .admin-login button[type="submit"],
 .admin-primary {
   border-color: #171919 !important;
@@ -3415,7 +3664,7 @@ body.is-route-leaving > .topbar {
 
 .admin-segmented {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   margin-bottom: 12px;
 }
 
@@ -3492,6 +3741,59 @@ body.is-route-leaving > .topbar {
 .admin-editor {
   padding: 42px max(34px, 6vw) 100px;
   background: #f8f9f7;
+}
+
+.admin-comments {
+  padding: 42px max(34px, 6vw) 100px;
+  background: #f8f9f7;
+}
+
+.admin-comments-message {
+  min-height: 20px;
+  margin: -22px 0 20px;
+  font-size: 13px;
+}
+
+.admin-comments-list {
+  width: min(100%, 880px);
+  margin: 0 auto;
+  border-top: 1px solid rgba(23, 25, 25, 0.16);
+}
+
+.admin-comment-item {
+  position: relative;
+  padding: 20px 88px 20px 0;
+  border-bottom: 1px solid rgba(23, 25, 25, 0.16);
+}
+
+.admin-comment-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-comment-meta strong {
+  font-size: 14px;
+}
+
+.admin-comment-meta span,
+.admin-comment-meta time {
+  color: rgba(23, 25, 25, 0.5);
+  font-size: 11px;
+}
+
+.admin-comment-item > p {
+  margin: 10px 0 0;
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.admin-comment-item > button {
+  position: absolute;
+  top: 18px;
+  right: 0;
 }
 
 .admin-editor form {
@@ -3644,6 +3946,10 @@ body.is-route-leaving > .topbar {
   .admin-editor {
     padding: 34px 18px 80px;
   }
+
+  .admin-comments {
+    padding: 34px 18px 80px;
+  }
 }
 
 @media (max-width: 560px) {
@@ -3667,6 +3973,20 @@ body.is-route-leaving > .topbar {
 
   .admin-image-strip {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .admin-comment-item {
+    padding-right: 0;
+  }
+
+  .admin-comment-item > button {
+    position: static;
+    margin-top: 12px;
+  }
+
+  .admin-comment-meta {
+    align-items: flex-start;
+    flex-wrap: wrap;
   }
 }
 

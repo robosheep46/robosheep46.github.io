@@ -14,6 +14,12 @@
   const weeklyFields = document.querySelector("[data-weekly-fields]");
   const saveMessage = document.querySelector("[data-save-message]");
   const importButton = document.querySelector("[data-import-weeklies]");
+  const commentsTab = document.querySelector("[data-comments-tab]");
+  const postControls = document.querySelector("[data-post-controls]");
+  const postEditor = document.querySelector("[data-post-editor]");
+  const commentsManager = document.querySelector("[data-comments-manager]");
+  const commentsList = document.querySelector("[data-admin-comments-list]");
+  const commentsMessage = document.querySelector("[data-comments-message]");
 
   let kind = "moment";
   let posts = [];
@@ -93,6 +99,10 @@
 
   const setKind = (nextKind) => {
     kind = nextKind;
+    commentsTab.setAttribute("aria-selected", "false");
+    postControls.hidden = false;
+    postEditor.hidden = false;
+    commentsManager.hidden = true;
     document.querySelectorAll("[data-kind-tab]").forEach((tab) => {
       tab.setAttribute("aria-selected", tab.dataset.kindTab === kind ? "true" : "false");
     });
@@ -101,6 +111,98 @@
     weeklyFields.hidden = kind !== "weekly";
     renderPostList();
     resetEditor();
+  };
+
+  const commentTargetLabel = (comment) => {
+    if (comment.target_kind === "life_image") {
+      return {
+        "2026-10-17-pork": "生活相册 · 锅包肉",
+        "2026-10-17-stew": "生活相册 · 铁锅炖",
+      }[comment.target_key] || `生活相册 · ${comment.target_key}`;
+    }
+    if (comment.target_kind === "robomaster_node") {
+      return `RoboMaster · ${comment.target_key.replace("-", ".")}`;
+    }
+    return {
+      about: "关于我",
+      interests: "兴趣爱好",
+    }[comment.target_key] || comment.target_key;
+  };
+
+  const renderComments = (comments) => {
+    if (!comments.length) {
+      commentsList.innerHTML = '<p class="admin-empty">还没有公开评论。</p>';
+      return;
+    }
+    const byId = new Map(comments.map((comment) => [comment.id, comment]));
+    commentsList.replaceChildren(...comments.map((comment) => {
+      const article = document.createElement("article");
+      article.className = "admin-comment-item";
+
+      const meta = document.createElement("div");
+      meta.className = "admin-comment-meta";
+      const nickname = document.createElement("strong");
+      nickname.textContent = comment.nickname;
+      const target = document.createElement("span");
+      target.textContent = commentTargetLabel(comment);
+      const time = document.createElement("time");
+      time.dateTime = comment.created_at;
+      time.textContent = new Date(comment.created_at).toLocaleString("zh-CN", { hour12: false });
+      meta.append(nickname, target, time);
+
+      const body = document.createElement("p");
+      const parent = comment.parent_id ? byId.get(comment.parent_id) : null;
+      body.textContent = parent ? `回复 ${parent.nickname}：${comment.body}` : comment.body;
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "admin-danger";
+      remove.textContent = "删除";
+      remove.addEventListener("click", async () => {
+        const warning = comment.parent_id
+          ? "确定删除这条回复吗？"
+          : "确定删除这条评论吗？它下面的回复也会一起删除。";
+        if (!confirm(warning)) return;
+        remove.disabled = true;
+        const { error } = await client.rpc("delete_comment", { comment_id: comment.id });
+        if (error) {
+          setMessage(commentsMessage, error.message, "error");
+          remove.disabled = false;
+          return;
+        }
+        setMessage(commentsMessage, "评论已删除", "success");
+        await loadComments();
+      });
+
+      article.append(meta, body, remove);
+      return article;
+    }));
+  };
+
+  const loadComments = async () => {
+    setMessage(commentsMessage, "正在读取评论...");
+    const { data, error } = await client
+      .from("public_comments")
+      .select("id,target_kind,target_key,nickname,body,parent_id,created_at")
+      .order("created_at", { ascending: false })
+      .limit(500);
+    if (error) {
+      setMessage(commentsMessage, error.message, "error");
+      return;
+    }
+    setMessage(commentsMessage, data?.length ? `共 ${data.length} 条评论` : "");
+    renderComments(data || []);
+  };
+
+  const showComments = async () => {
+    document.querySelectorAll("[data-kind-tab]").forEach((tab) => {
+      tab.setAttribute("aria-selected", "false");
+    });
+    commentsTab.setAttribute("aria-selected", "true");
+    postControls.hidden = true;
+    postEditor.hidden = true;
+    commentsManager.hidden = false;
+    await loadComments();
   };
 
   const resetEditor = () => {
@@ -368,6 +470,8 @@
   document.querySelectorAll("[data-kind-tab]").forEach((tab) => {
     tab.addEventListener("click", () => setKind(tab.dataset.kindTab));
   });
+  commentsTab.addEventListener("click", showComments);
+  document.querySelector("[data-refresh-comments]").addEventListener("click", loadComments);
   document.querySelector("[data-new-post]").addEventListener("click", resetEditor);
   document.querySelector("[data-add-section]").addEventListener("click", () => addSection());
   document.querySelector("[data-delete-post]").addEventListener("click", deletePost);

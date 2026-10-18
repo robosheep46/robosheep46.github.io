@@ -142,6 +142,26 @@
     return posts.find((post) => post.id === identity || post.slug === identity) || null;
   }
 
+  async function listComments(targetKind, targetKey) {
+    if (!client) throw new Error("评论服务尚未配置");
+    const { data, error } = await client
+      .from("public_comments")
+      .select("id,target_kind,target_key,nickname,body,parent_id,created_at")
+      .eq("target_kind", targetKind)
+      .eq("target_key", targetKey)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return data || [];
+  }
+
+  async function createComment(comment) {
+    if (!client) throw new Error("评论服务尚未配置");
+    const { error } = await client
+      .from("comments")
+      .insert(comment);
+    if (error) throw error;
+  }
+
   async function hydrateHome() {
     const weeklyTargets = document.querySelectorAll("[data-latest-weekly-title]");
     const momentTargets = document.querySelectorAll("[data-latest-moment-text]");
@@ -193,6 +213,8 @@
     legacyWeeklies,
     listPublished,
     getPublished,
+    listComments,
+    createComment,
   });
 
   if (document.readyState === "loading") {

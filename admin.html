@@ -6,11 +6,11 @@
     <meta name="robots" content="noindex,nofollow" />
     <meta name="theme-color" content="#171919" />
     <title>内容后台｜robosheep 的小站</title>
-    <link rel="stylesheet" href="./styles.css?v=83" />
-    <script src="./site-config.js?v=1" defer></script>
+    <link rel="stylesheet" href="./styles.css?v=91" />
+    <script src="./site-config.js?v=2" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <script src="./content-store.js?v=1" defer></script>
-    <script src="./admin.js?v=1" defer></script>
+    <script src="./content-store.js?v=2" defer></script>
+    <script src="./admin.js?v=3" defer></script>
   </head>
   <body class="admin-page">
     <main class="admin-shell">
@@ -51,13 +51,16 @@
             <div class="admin-segmented" role="tablist" aria-label="内容类型">
               <button type="button" role="tab" aria-selected="true" data-kind-tab="moment">动态</button>
               <button type="button" role="tab" aria-selected="false" data-kind-tab="weekly">周报</button>
+              <button type="button" role="tab" aria-selected="false" data-comments-tab>评论</button>
             </div>
-            <button class="admin-new" type="button" data-new-post>新建动态</button>
-            <button class="admin-import" type="button" data-import-weeklies hidden>导入两篇旧周报</button>
-            <div class="admin-post-list" data-post-list aria-live="polite"></div>
+            <div data-post-controls>
+              <button class="admin-new" type="button" data-new-post>新建动态</button>
+              <button class="admin-import" type="button" data-import-weeklies hidden>导入两篇旧周报</button>
+              <div class="admin-post-list" data-post-list aria-live="polite"></div>
+            </div>
           </aside>
 
-          <section class="admin-editor">
+          <section class="admin-editor" data-post-editor>
             <form data-post-form>
               <input type="hidden" name="id" />
               <div class="admin-editor-head">
@@ -109,6 +112,18 @@
 
               <p class="admin-save-message" data-save-message aria-live="polite"></p>
             </form>
+          </section>
+
+          <section class="admin-comments" data-comments-manager hidden>
+            <header class="admin-editor-head">
+              <div>
+                <p>公开留言</p>
+                <h1>评论管理</h1>
+              </div>
+              <button type="button" data-refresh-comments>刷新</button>
+            </header>
+            <p class="admin-comments-message" data-comments-message aria-live="polite"></p>
+            <div class="admin-comments-list" data-admin-comments-list></div>
           </section>
         </div>
       </section>

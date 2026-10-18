@@ -7,7 +7,11 @@
     <meta name="theme-color" content="#07101c" />
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <title>生活相册｜robosheep 的小站</title>
-    <link rel="stylesheet" href="../styles.css?v=90" />
+    <link rel="stylesheet" href="../styles.css?v=91" />
+    <script src="../site-config.js?v=2" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="../content-store.js?v=2" defer></script>
+    <script src="../comments.js?v=1" defer></script>
   </head>
   <body class="immersive-page" style="--inner-banner: url('../media/opening.jpg?v=13')">
     <div class="boot" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="载入">
@@ -42,6 +46,10 @@
             </figure>
           </div>
           <button type="button" class="album-nav album-next" aria-label="下一张"></button>
+        </div>
+        <div class="album-comment-panels">
+          <section class="comments-section" data-comments data-album-comment data-comment-kind="life_image" data-comment-key="2026-10-17-pork"></section>
+          <section class="comments-section" data-comments data-album-comment data-comment-kind="life_image" data-comment-key="2026-10-17-stew" hidden></section>
         </div>
       </div>
     </main>

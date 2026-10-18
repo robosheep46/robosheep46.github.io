@@ -385,12 +385,16 @@ document.querySelectorAll("[data-album]").forEach((album) => {
   const prev = album.querySelector(".album-prev");
   const next = album.querySelector(".album-next");
   const frame = album.querySelector(".album-frame");
+  const commentPanels = [...album.querySelectorAll("[data-album-comment]")];
   if (!cards.length || !prev || !next || !frame) return;
 
   let index = Math.max(0, cards.findIndex((card) => card.classList.contains("is-on")));
   const show = (nextIndex) => {
     index = Math.max(0, Math.min(cards.length - 1, nextIndex));
     cards.forEach((card, i) => card.classList.toggle("is-on", i === index));
+    commentPanels.forEach((panel, i) => {
+      panel.hidden = i !== index;
+    });
     prev.disabled = index === 0;
     next.disabled = index === cards.length - 1;
   };
