@@ -6,11 +6,11 @@
     <meta name="robots" content="noindex,nofollow" />
     <meta name="theme-color" content="#171919" />
     <title>内容后台｜robosheep 的小站</title>
-    <link rel="stylesheet" href="./styles.css?v=93" />
+    <link rel="stylesheet" href="./styles.css?v=100" />
     <script src="./site-config.js?v=2" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <script src="./content-store.js?v=4" defer></script>
-    <script src="./admin.js?v=5" defer></script>
+    <script src="./content-store.js?v=5" defer></script>
+    <script src="./admin.js?v=6" defer></script>
   </head>
   <body class="admin-page">
     <main class="admin-shell">
@@ -51,6 +51,8 @@
             <div class="admin-segmented" role="tablist" aria-label="内容类型">
               <button type="button" role="tab" aria-selected="true" data-kind-tab="moment">动态</button>
               <button type="button" role="tab" aria-selected="false" data-kind-tab="weekly">周报</button>
+              <button type="button" role="tab" aria-selected="false" data-kind-tab="story">故事</button>
+              <button type="button" role="tab" aria-selected="false" data-kind-tab="photo">照片</button>
               <button type="button" role="tab" aria-selected="false" data-comments-tab>评论</button>
             </div>
             <div data-post-controls>
@@ -82,7 +84,7 @@
                     <option value="hidden">隐藏</option>
                   </select>
                 </label>
-                <label>
+                <label data-happened-field>
                   发生时间
                   <input type="datetime-local" name="happened_at" required />
                 </label>
@@ -105,8 +107,49 @@
                   周报标题
                   <input type="text" name="title" maxlength="100" placeholder="这一周的标题" />
                 </label>
-                <div class="admin-sections" data-sections></div>
-                <button type="button" class="admin-add-section" data-add-section>＋ 添加段落</button>
+                <div class="admin-sections" data-weekly-sections></div>
+                <button type="button" class="admin-add-section" data-add-weekly-section>＋ 添加段落</button>
+              </section>
+
+              <section data-story-fields hidden>
+                <label class="admin-block-label">
+                  故事标题
+                  <input type="text" name="story_title" maxlength="100" placeholder="这篇故事叫什么" />
+                </label>
+                <label class="admin-block-label">
+                  列表简介
+                  <textarea name="story_summary" rows="3" maxlength="240" placeholder="在故事列表中显示的一句话"></textarea>
+                </label>
+                <label class="admin-upload-label">
+                  选择封面
+                  <input type="file" name="story_cover" accept="image/*" />
+                </label>
+                <div class="admin-image-strip admin-single-image" data-story-existing-cover></div>
+                <div class="admin-section-heading">
+                  <div><strong>时间节点</strong><span>保存时按年月自动排序</span></div>
+                </div>
+                <div class="admin-sections" data-story-sections></div>
+                <button type="button" class="admin-add-section" data-add-story-section>＋ 添加时间节点</button>
+              </section>
+
+              <section data-photo-fields hidden>
+                <label class="admin-block-label">
+                  拍摄日期
+                  <input type="date" name="photo_date" />
+                </label>
+                <label class="admin-block-label">
+                  照片标题
+                  <input type="text" name="photo_title" maxlength="100" placeholder="给这张照片一个标题" />
+                </label>
+                <label class="admin-block-label">
+                  说明
+                  <textarea name="photo_body" rows="5" maxlength="1000" placeholder="记录照片背后的事情"></textarea>
+                </label>
+                <label class="admin-upload-label">
+                  选择照片
+                  <input type="file" name="photo_image" accept="image/*" />
+                </label>
+                <div class="admin-image-strip admin-single-image" data-photo-existing-image></div>
               </section>
 
               <p class="admin-save-message" data-save-message aria-live="polite"></p>
@@ -128,7 +171,7 @@
       </section>
     </main>
 
-    <template id="section-editor-template">
+    <template id="weekly-section-editor-template">
       <article class="admin-section-editor" data-section-editor>
         <header>
           <span data-section-number>01</span>
@@ -147,6 +190,29 @@
           <input type="file" data-section-files accept="image/*" multiple />
         </label>
         <div class="admin-image-strip" data-section-existing-images></div>
+      </article>
+    </template>
+
+    <template id="story-section-editor-template">
+      <article class="admin-section-editor admin-story-node" data-story-node>
+        <header>
+          <span data-story-node-number>时间节点</span>
+          <button type="button" data-remove-story-node title="删除这个节点" aria-label="删除这个节点">×</button>
+        </header>
+        <div class="admin-fields admin-node-fields">
+          <label>
+            年月
+            <input type="month" data-story-node-month />
+          </label>
+          <label>
+            标题
+            <input type="text" data-story-node-heading maxlength="100" />
+          </label>
+        </div>
+        <label>
+          正文
+          <textarea data-story-node-body rows="8" placeholder="不同段落之间空一行"></textarea>
+        </label>
       </article>
     </template>
   </body>

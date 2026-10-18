@@ -8,10 +8,11 @@
   const configWarning = document.querySelector("[data-config-warning]");
   const postForm = document.querySelector("[data-post-form]");
   const postList = document.querySelector("[data-post-list]");
-  const sectionsRoot = document.querySelector("[data-sections]");
-  const sectionTemplate = document.querySelector("#section-editor-template");
-  const momentFields = document.querySelector("[data-moment-fields]");
-  const weeklyFields = document.querySelector("[data-weekly-fields]");
+  const weeklySectionsRoot = document.querySelector("[data-weekly-sections]");
+  const storySectionsRoot = document.querySelector("[data-story-sections]");
+  const weeklySectionTemplate = document.querySelector("#weekly-section-editor-template");
+  const storySectionTemplate = document.querySelector("#story-section-editor-template");
+  const happenedField = document.querySelector("[data-happened-field]");
   const saveMessage = document.querySelector("[data-save-message]");
   const commentsTab = document.querySelector("[data-comments-tab]");
   const postControls = document.querySelector("[data-post-controls]");
@@ -19,11 +20,20 @@
   const commentsManager = document.querySelector("[data-comments-manager]");
   const commentsList = document.querySelector("[data-admin-comments-list]");
   const commentsMessage = document.querySelector("[data-comments-message]");
+  const fieldSections = {
+    moment: document.querySelector("[data-moment-fields]"),
+    weekly: document.querySelector("[data-weekly-fields]"),
+    story: document.querySelector("[data-story-fields]"),
+    photo: document.querySelector("[data-photo-fields]"),
+  };
+  const kindLabels = { moment: "动态", weekly: "周报", story: "故事", photo: "照片" };
 
   let kind = "moment";
   let posts = [];
   let currentPost = null;
   let removedPaths = [];
+  let pendingUploadPaths = [];
+  let draggedStoryId = "";
 
   const setMessage = (node, message, tone = "") => {
     node.textContent = message;
@@ -36,6 +46,7 @@
     return local.toISOString().slice(0, 16);
   };
 
+  const toDateInput = (value = new Date()) => toLocalInput(value).slice(0, 10);
   const imageRecord = (image) => typeof image === "string" ? { url: image, path: "" } : image;
   const allPostImages = (post) => [
     ...(post.images || []),
@@ -45,6 +56,8 @@
   const makeImageChip = (image, onRemove) => {
     const record = imageRecord(image);
     const wrapper = document.createElement("figure");
+    wrapper.dataset.url = record.url;
+    wrapper.dataset.path = record.path || "";
     const img = document.createElement("img");
     img.src = record.url;
     img.alt = "";
@@ -58,8 +71,6 @@
       wrapper.remove();
       onRemove?.(record);
     });
-    wrapper.dataset.url = record.url;
-    wrapper.dataset.path = record.path || "";
     wrapper.append(img, button);
     return wrapper;
   };
@@ -69,14 +80,14 @@
     path: figure.dataset.path,
   }));
 
-  const updateSectionNumbers = () => {
-    sectionsRoot.querySelectorAll("[data-section-editor]").forEach((section, index) => {
+  const updateWeeklyNumbers = () => {
+    weeklySectionsRoot.querySelectorAll("[data-section-editor]").forEach((section, index) => {
       section.querySelector("[data-section-number]").textContent = String(index + 1).padStart(2, "0");
     });
   };
 
-  const addSection = (section = {}) => {
-    const fragment = sectionTemplate.content.cloneNode(true);
+  const addWeeklySection = (section = {}) => {
+    const fragment = weeklySectionTemplate.content.cloneNode(true);
     const editor = fragment.querySelector("[data-section-editor]");
     editor.querySelector("[data-section-heading]").value = section.heading || "";
     const paragraphs = Array.isArray(section.paragraphs)
@@ -90,10 +101,44 @@
         if (image.path) removedPaths.push(image.path);
       });
       editor.remove();
-      updateSectionNumbers();
+      updateWeeklyNumbers();
     });
-    sectionsRoot.append(fragment);
-    updateSectionNumbers();
+    weeklySectionsRoot.append(fragment);
+    updateWeeklyNumbers();
+  };
+
+  const updateStoryNumbers = () => {
+    storySectionsRoot.querySelectorAll("[data-story-node]").forEach((node, index) => {
+      const month = node.querySelector("[data-story-node-month]").value;
+      node.querySelector("[data-story-node-number]").textContent = month || `节点 ${index + 1}`;
+    });
+  };
+
+  const addStorySection = (section = {}) => {
+    const fragment = storySectionTemplate.content.cloneNode(true);
+    const editor = fragment.querySelector("[data-story-node]");
+    editor.dataset.nodeKey = section.key || `node-${crypto.randomUUID()}`;
+    editor.querySelector("[data-story-node-month]").value = section.month || "";
+    editor.querySelector("[data-story-node-heading]").value = section.heading || "";
+    const paragraphs = Array.isArray(section.paragraphs)
+      ? section.paragraphs
+      : String(section.body || "").split(/\n\s*\n/).filter(Boolean);
+    editor.querySelector("[data-story-node-body]").value = paragraphs.join("\n\n");
+    editor.querySelector("[data-story-node-month]").addEventListener("change", updateStoryNumbers);
+    editor.querySelector("[data-remove-story-node]").addEventListener("click", () => {
+      if (!confirm("移除这个时间节点后，保存故事时会同时删除该节点的评论。")) return;
+      editor.remove();
+      updateStoryNumbers();
+    });
+    storySectionsRoot.append(fragment);
+    updateStoryNumbers();
+  };
+
+  const setSectionVisible = (section, visible) => {
+    section.hidden = !visible;
+    section.querySelectorAll("input, textarea, select, button").forEach((control) => {
+      control.disabled = !visible;
+    });
   };
 
   const setKind = (nextKind) => {
@@ -105,27 +150,21 @@
     document.querySelectorAll("[data-kind-tab]").forEach((tab) => {
       tab.setAttribute("aria-selected", tab.dataset.kindTab === kind ? "true" : "false");
     });
-    document.querySelector("[data-new-post]").textContent = kind === "moment" ? "新建动态" : "新建周报";
-    momentFields.hidden = kind !== "moment";
-    weeklyFields.hidden = kind !== "weekly";
+    document.querySelector("[data-new-post]").textContent = `新建${kindLabels[kind]}`;
+    Object.entries(fieldSections).forEach(([name, section]) => setSectionVisible(section, name === kind));
+    const showHappenedAt = kind === "moment" || kind === "weekly";
+    happenedField.hidden = !showHappenedAt;
+    postForm.elements.happened_at.disabled = !showHappenedAt;
     renderPostList();
     resetEditor();
   };
 
   const commentTargetLabel = (comment) => {
-    if (comment.target_kind === "life_image") {
-      return {
-        "2026-10-17-pork": "生活相册 · 锅包肉",
-        "2026-10-17-stew": "生活相册 · 铁锅炖",
-      }[comment.target_key] || `生活相册 · ${comment.target_key}`;
+    if (comment.target_kind === "life_image") return `生活相册 · ${comment.target_key}`;
+    if (comment.target_kind === "story_node" || comment.target_kind === "robomaster_node") {
+      return `故事节点 · ${comment.target_key.replace("-", ".")}`;
     }
-    if (comment.target_kind === "robomaster_node") {
-      return `RoboMaster · ${comment.target_key.replace("-", ".")}`;
-    }
-    return {
-      about: "关于我",
-      interests: "兴趣爱好",
-    }[comment.target_key] || comment.target_key;
+    return { about: "关于我", interests: "兴趣爱好" }[comment.target_key] || comment.target_key;
   };
 
   const renderComments = (comments) => {
@@ -137,7 +176,6 @@
     commentsList.replaceChildren(...comments.map((comment) => {
       const article = document.createElement("article");
       article.className = "admin-comment-item";
-
       const meta = document.createElement("div");
       meta.className = "admin-comment-meta";
       const nickname = document.createElement("strong");
@@ -148,19 +186,15 @@
       time.dateTime = comment.created_at;
       time.textContent = new Date(comment.created_at).toLocaleString("zh-CN", { hour12: false });
       meta.append(nickname, target, time);
-
       const body = document.createElement("p");
       const parent = comment.parent_id ? byId.get(comment.parent_id) : null;
       body.textContent = parent ? `回复 ${parent.nickname}：${comment.body}` : comment.body;
-
       const remove = document.createElement("button");
       remove.type = "button";
       remove.className = "admin-danger";
       remove.textContent = "删除";
       remove.addEventListener("click", async () => {
-        const warning = comment.parent_id
-          ? "确定删除这条回复吗？"
-          : "确定删除这条评论吗？它下面的回复也会一起删除。";
+        const warning = comment.parent_id ? "确定删除这条回复吗？" : "确定删除这条评论吗？它下面的回复也会一起删除。";
         if (!confirm(warning)) return;
         remove.disabled = true;
         const { error } = await client.rpc("delete_comment", { comment_id: comment.id });
@@ -172,7 +206,6 @@
         setMessage(commentsMessage, "评论已删除", "success");
         await loadComments();
       });
-
       article.append(meta, body, remove);
       return article;
     }));
@@ -194,9 +227,7 @@
   };
 
   const showComments = async () => {
-    document.querySelectorAll("[data-kind-tab]").forEach((tab) => {
-      tab.setAttribute("aria-selected", "false");
-    });
+    document.querySelectorAll("[data-kind-tab]").forEach((tab) => tab.setAttribute("aria-selected", "false"));
     commentsTab.setAttribute("aria-selected", "true");
     postControls.hidden = true;
     postEditor.hidden = true;
@@ -211,13 +242,19 @@
     postForm.elements.id.value = "";
     postForm.elements.status.value = "draft";
     postForm.elements.happened_at.value = toLocalInput();
-    document.querySelector("[data-editor-kicker]").textContent = kind === "moment" ? "新建动态" : "新建周报";
+    postForm.elements.photo_date.value = toDateInput();
+    document.querySelector("[data-editor-kicker]").textContent = `新建${kindLabels[kind]}`;
     document.querySelector("[data-editor-title]").textContent = "尚未保存";
     document.querySelector("[data-delete-post]").hidden = true;
     document.querySelector("[data-moment-existing-images]").replaceChildren();
-    sectionsRoot.replaceChildren();
-    if (kind === "weekly") addSection();
+    document.querySelector("[data-story-existing-cover]").replaceChildren();
+    document.querySelector("[data-photo-existing-image]").replaceChildren();
+    weeklySectionsRoot.replaceChildren();
+    storySectionsRoot.replaceChildren();
+    if (kind === "weekly") addWeeklySection();
+    if (kind === "story") addStorySection();
     setMessage(saveMessage, "");
+    renderPostList();
   };
 
   const editPost = (post) => {
@@ -227,51 +264,133 @@
     postForm.elements.id.value = post.id;
     postForm.elements.status.value = post.status;
     postForm.elements.happened_at.value = toLocalInput(post.happened_at);
+    postForm.elements.photo_date.value = toDateInput(post.happened_at);
     postForm.elements.body.value = post.body || "";
     postForm.elements.title.value = post.title || "";
-    document.querySelector("[data-editor-kicker]").textContent = post.kind === "moment" ? "编辑动态" : "编辑周报";
-    document.querySelector("[data-editor-title]").textContent = post.title || store.dateLabel(post.happened_at);
+    postForm.elements.story_title.value = post.title || "";
+    postForm.elements.story_summary.value = post.body || "";
+    postForm.elements.photo_title.value = post.title || "";
+    postForm.elements.photo_body.value = post.body || "";
+    document.querySelector("[data-editor-kicker]").textContent = `编辑${kindLabels[post.kind]}`;
+    document.querySelector("[data-editor-title]").textContent = post.title || post.body?.slice(0, 30) || "未命名";
     document.querySelector("[data-delete-post]").hidden = false;
 
-    const momentStrip = document.querySelector("[data-moment-existing-images]");
-    momentStrip.replaceChildren(...(post.images || []).map((image) => makeImageChip(image)));
-    sectionsRoot.replaceChildren();
-    (post.sections || []).forEach(addSection);
-    if (post.kind === "weekly" && !(post.sections || []).length) addSection();
+    document.querySelector("[data-moment-existing-images]").replaceChildren(
+      ...(post.kind === "moment" ? post.images || [] : []).map((image) => makeImageChip(image)),
+    );
+    document.querySelector("[data-story-existing-cover]").replaceChildren(
+      ...(post.kind === "story" ? (post.images || []).slice(0, 1) : []).map((image) => makeImageChip(image)),
+    );
+    document.querySelector("[data-photo-existing-image]").replaceChildren(
+      ...(post.kind === "photo" ? (post.images || []).slice(0, 1) : []).map((image) => makeImageChip(image)),
+    );
+
+    weeklySectionsRoot.replaceChildren();
+    storySectionsRoot.replaceChildren();
+    if (post.kind === "weekly") {
+      (post.sections || []).forEach(addWeeklySection);
+      if (!(post.sections || []).length) addWeeklySection();
+    }
+    if (post.kind === "story") {
+      [...(post.sections || [])]
+        .sort((a, b) => String(a.month || "").localeCompare(String(b.month || "")))
+        .forEach(addStorySection);
+      if (!(post.sections || []).length) addStorySection();
+    }
     setMessage(saveMessage, "");
+    renderPostList();
+  };
+
+  const sortedPosts = () => posts
+    .filter((post) => post.kind === kind)
+    .sort((a, b) => kind === "story"
+      ? Number(a.sort_order || 0) - Number(b.sort_order || 0) || new Date(a.happened_at) - new Date(b.happened_at)
+      : new Date(b.happened_at) - new Date(a.happened_at));
+
+  const persistStoryOrder = async (ordered) => {
+    setMessage(saveMessage, "正在保存故事顺序...");
+    const results = await Promise.all(ordered.map((post, index) => client
+      .from("posts")
+      .update({ sort_order: index })
+      .eq("id", post.id)
+      .select("id")));
+    const failure = results.find(({ error, data }) => error || !data?.length);
+    if (failure) {
+      setMessage(saveMessage, failure.error?.message || "故事顺序没有写入数据库，请先执行最新 setup.sql", "error");
+      await loadPosts();
+      return;
+    }
+    ordered.forEach((post, index) => { post.sort_order = index; });
+    setMessage(saveMessage, "故事顺序已保存", "success");
+    renderPostList();
+  };
+
+  const makePostButton = (post) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "admin-post-item";
+    if (currentPost?.id === post.id) button.classList.add("is-active");
+    const status = document.createElement("span");
+    status.textContent = { draft: "草稿", published: "公开", hidden: "隐藏" }[post.status] || post.status;
+    const title = document.createElement("strong");
+    title.textContent = post.title || post.body?.slice(0, 36) || "未命名";
+    const date = document.createElement("time");
+    date.textContent = kind === "story" ? "拖动调整顺序" : store.dateLabel(post.happened_at);
+    button.append(status, title, date);
+    button.addEventListener("click", () => editPost(post));
+    return button;
   };
 
   const renderPostList = () => {
-    const visible = posts.filter((post) => post.kind === kind);
+    const visible = sortedPosts();
     if (!visible.length) {
       postList.innerHTML = '<p class="admin-empty">还没有内容。</p>';
       return;
     }
-    postList.replaceChildren(...visible.map((post) => {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "admin-post-item";
-      if (currentPost?.id === post.id) button.classList.add("is-active");
-      const status = document.createElement("span");
-      status.textContent = { draft: "草稿", published: "公开", hidden: "隐藏" }[post.status] || post.status;
-      const title = document.createElement("strong");
-      title.textContent = post.title || post.body?.slice(0, 36) || "未命名";
-      const date = document.createElement("time");
-      date.textContent = store.dateLabel(post.happened_at);
-      button.append(status, title, date);
-      button.addEventListener("click", () => {
-        editPost(post);
-        renderPostList();
+    if (kind !== "story") {
+      postList.replaceChildren(...visible.map(makePostButton));
+      return;
+    }
+
+    const note = document.createElement("p");
+    note.className = "admin-sort-note";
+    note.textContent = "拖动故事可调整公开列表顺序";
+    const rows = visible.map((post) => {
+      const row = document.createElement("div");
+      row.className = "admin-post-row";
+      row.draggable = true;
+      row.dataset.postId = post.id;
+      const handle = document.createElement("span");
+      handle.className = "admin-drag-handle";
+      handle.textContent = "⋮⋮";
+      handle.setAttribute("aria-hidden", "true");
+      row.append(handle, makePostButton(post));
+      row.addEventListener("dragstart", () => {
+        draggedStoryId = post.id;
+        row.classList.add("is-dragging");
       });
-      return button;
-    }));
+      row.addEventListener("dragend", () => row.classList.remove("is-dragging"));
+      row.addEventListener("dragover", (event) => event.preventDefault());
+      row.addEventListener("drop", async (event) => {
+        event.preventDefault();
+        if (!draggedStoryId || draggedStoryId === post.id) return;
+        const reordered = sortedPosts();
+        const from = reordered.findIndex((item) => item.id === draggedStoryId);
+        const to = reordered.findIndex((item) => item.id === post.id);
+        const [moved] = reordered.splice(from, 1);
+        reordered.splice(to, 0, moved);
+        draggedStoryId = "";
+        reordered.forEach((item, index) => { item.sort_order = index; });
+        renderPostList();
+        await persistStoryOrder(reordered);
+      });
+      return row;
+    });
+    postList.replaceChildren(note, ...rows);
   };
 
   const loadPosts = async () => {
-    const { data, error } = await client
-      .from("posts")
-      .select("*")
-      .order("happened_at", { ascending: false });
+    const { data, error } = await client.from("posts").select("*").order("happened_at", { ascending: false });
     if (error) {
       setMessage(saveMessage, error.message, "error");
       return;
@@ -309,15 +428,16 @@
         .from(store.config.storageBucket || "content-media")
         .upload(path, blob, { contentType: "image/jpeg", upsert: false });
       if (error) throw error;
+      pendingUploadPaths.push(path);
       const { data } = client.storage.from(store.config.storageBucket || "content-media").getPublicUrl(path);
       uploaded.push({ url: data.publicUrl, path });
     }
     return uploaded;
   };
 
-  const collectSections = async (userId) => {
+  const collectWeeklySections = async (userId) => {
     const result = [];
-    for (const [index, editor] of [...sectionsRoot.querySelectorAll("[data-section-editor]")].entries()) {
+    for (const [index, editor] of [...weeklySectionsRoot.querySelectorAll("[data-section-editor]")].entries()) {
       const heading = editor.querySelector("[data-section-heading]").value.trim();
       const body = editor.querySelector("[data-section-body]").value.trim();
       const existing = readExistingImages(editor.querySelector("[data-section-existing-images]"));
@@ -332,23 +452,49 @@
     return result;
   };
 
+  const collectStorySections = () => [...storySectionsRoot.querySelectorAll("[data-story-node]")]
+    .map((editor) => {
+      const body = editor.querySelector("[data-story-node-body]").value.trim();
+      return {
+        key: editor.dataset.nodeKey,
+        month: editor.querySelector("[data-story-node-month]").value,
+        heading: editor.querySelector("[data-story-node-heading]").value.trim(),
+        paragraphs: body.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean),
+      };
+    })
+    .sort((a, b) => a.month.localeCompare(b.month));
+
+  const collectSingleImage = async (strip, input, folder) => {
+    const existing = readExistingImages(strip).slice(0, 1);
+    const file = input.files?.[0];
+    if (!file) return existing[0] || null;
+    existing.forEach((image) => {
+      if (image.path) removedPaths.push(image.path);
+    });
+    const uploaded = await uploadFiles([file], folder);
+    return uploaded[0] || null;
+  };
+
+  const publishedAt = (status) => status === "published"
+    ? (currentPost?.published_at || new Date().toISOString())
+    : currentPost?.published_at || null;
+
   const savePost = async (event) => {
     event.preventDefault();
     const { data: { user } } = await client.auth.getUser();
     if (!user) return;
     const submit = postForm.querySelector('[type="submit"]');
     submit.disabled = true;
+    pendingUploadPaths = [];
     setMessage(saveMessage, "正在保存...");
     try {
-      const happenedAt = new Date(postForm.elements.happened_at.value).toISOString();
       const status = postForm.elements.status.value;
       let payload;
       if (kind === "moment") {
         const body = postForm.elements.body.value.trim();
         if (!body) throw new Error("请填写动态正文");
         const existing = readExistingImages(document.querySelector("[data-moment-existing-images]"));
-        const files = [...postForm.elements.moment_images.files];
-        const uploaded = await uploadFiles(files, `moment/${user.id}`);
+        const uploaded = await uploadFiles([...postForm.elements.moment_images.files], `moment/${user.id}`);
         payload = {
           kind,
           slug: currentPost?.slug || `moment-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
@@ -357,13 +503,14 @@
           sections: [],
           images: [...existing, ...uploaded],
           status,
-          happened_at: happenedAt,
-          published_at: status === "published" ? (currentPost?.published_at || new Date().toISOString()) : currentPost?.published_at,
+          happened_at: new Date(postForm.elements.happened_at.value).toISOString(),
+          published_at: publishedAt(status),
+          sort_order: 0,
         };
-      } else {
+      } else if (kind === "weekly") {
         const title = postForm.elements.title.value.trim();
         if (!title) throw new Error("请填写周报标题");
-        const sections = await collectSections(user.id);
+        const sections = await collectWeeklySections(user.id);
         if (!sections.length || sections.some((section) => !section.heading)) throw new Error("每个周报段落都需要小标题");
         payload = {
           kind,
@@ -373,25 +520,94 @@
           sections,
           images: [],
           status,
-          happened_at: happenedAt,
-          published_at: status === "published" ? (currentPost?.published_at || new Date().toISOString()) : currentPost?.published_at,
+          happened_at: new Date(postForm.elements.happened_at.value).toISOString(),
+          published_at: publishedAt(status),
+          sort_order: 0,
+        };
+      } else if (kind === "story") {
+        const title = postForm.elements.story_title.value.trim();
+        const body = postForm.elements.story_summary.value.trim();
+        const sections = collectStorySections();
+        const cover = await collectSingleImage(
+          document.querySelector("[data-story-existing-cover]"),
+          postForm.elements.story_cover,
+          `story/${user.id}`,
+        );
+        if (status === "published") {
+          if (!title) throw new Error("公开故事前请填写标题");
+          if (!cover) throw new Error("公开故事前请添加封面");
+          if (!sections.length) throw new Error("公开故事前请至少添加一个时间节点");
+          if (sections.some((section) => !section.month || !section.heading || !section.paragraphs.length)) {
+            throw new Error("公开故事的每个节点都需要年月、标题和正文");
+          }
+        }
+        const firstMonth = sections.find((section) => section.month)?.month;
+        const nextOrder = Math.max(-1, ...posts.filter((post) => post.kind === "story").map((post) => Number(post.sort_order || 0))) + 1;
+        payload = {
+          kind,
+          slug: currentPost?.slug || `story-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
+          title,
+          body,
+          sections,
+          images: cover ? [cover] : [],
+          status,
+          happened_at: firstMonth
+            ? new Date(`${firstMonth}-01T12:00:00`).toISOString()
+            : currentPost?.happened_at || new Date().toISOString(),
+          published_at: publishedAt(status),
+          sort_order: currentPost?.sort_order ?? nextOrder,
+        };
+      } else {
+        const title = postForm.elements.photo_title.value.trim();
+        const body = postForm.elements.photo_body.value.trim();
+        const date = postForm.elements.photo_date.value;
+        const image = await collectSingleImage(
+          document.querySelector("[data-photo-existing-image]"),
+          postForm.elements.photo_image,
+          `photo/${user.id}`,
+        );
+        if (status === "published" && (!date || !title || !image)) {
+          throw new Error("公开照片前请填写日期、标题并上传照片");
+        }
+        payload = {
+          kind,
+          slug: currentPost?.slug || `photo-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
+          title,
+          body,
+          sections: [],
+          images: image ? [image] : [],
+          status,
+          happened_at: date
+            ? new Date(`${date}T12:00:00`).toISOString()
+            : currentPost?.happened_at || new Date().toISOString(),
+          published_at: publishedAt(status),
+          sort_order: currentPost?.sort_order || 0,
         };
       }
 
       const query = currentPost
-        ? client.from("posts").update(payload).eq("id", currentPost.id).select().single()
-        : client.from("posts").insert(payload).select().single();
-      const { data, error } = await query;
+        ? client.from("posts").update(payload).eq("id", currentPost.id)
+        : client.from("posts").insert(payload);
+      const { data, error } = await query.select("*");
       if (error) throw error;
+      if (!data?.length) throw new Error("数据库没有更新任何记录，请检查管理员 RLS 权限后重试");
 
+      let cleanupFailed = false;
       if (removedPaths.length) {
-        await client.storage.from(store.config.storageBucket || "content-media").remove([...new Set(removedPaths)]);
+        const { error: cleanupError } = await client.storage
+          .from(store.config.storageBucket || "content-media")
+          .remove([...new Set(removedPaths)]);
+        cleanupFailed = Boolean(cleanupError);
       }
-      setMessage(saveMessage, "已保存", "success");
+      pendingUploadPaths = [];
+      setMessage(saveMessage, cleanupFailed ? "内容已保存，但旧图片清理失败" : "已保存", cleanupFailed ? "error" : "success");
       await loadPosts();
-      editPost(data);
-      renderPostList();
+      editPost(data[0]);
     } catch (error) {
+      if (pendingUploadPaths.length) {
+        await client.storage.from(store.config.storageBucket || "content-media").remove(pendingUploadPaths);
+      }
+      pendingUploadPaths = [];
       setMessage(saveMessage, error.message || "保存失败", "error");
     } finally {
       submit.disabled = false;
@@ -399,14 +615,17 @@
   };
 
   const deletePost = async () => {
-    if (!currentPost || !confirm("确定删除这条内容吗？删除后无法恢复。")) return;
+    if (!currentPost || !confirm(`确定删除这条${kindLabels[currentPost.kind]}吗？相关图片和评论也会一起删除，且无法恢复。`)) return;
     const paths = allPostImages(currentPost).map((image) => image.path).filter(Boolean);
-    const { error } = await client.from("posts").delete().eq("id", currentPost.id);
-    if (error) {
-      setMessage(saveMessage, error.message, "error");
+    const { data, error } = await client.from("posts").delete().eq("id", currentPost.id).select("id");
+    if (error || !data?.length) {
+      setMessage(saveMessage, error?.message || "数据库没有删除任何记录，请检查管理员权限", "error");
       return;
     }
-    if (paths.length) await client.storage.from(store.config.storageBucket || "content-media").remove(paths);
+    if (paths.length) {
+      const { error: storageError } = await client.storage.from(store.config.storageBucket || "content-media").remove(paths);
+      if (storageError) setMessage(saveMessage, "内容已删除，但图片文件清理失败", "error");
+    }
     await loadPosts();
     resetEditor();
   };
@@ -463,10 +682,12 @@
   commentsTab.addEventListener("click", showComments);
   document.querySelector("[data-refresh-comments]").addEventListener("click", loadComments);
   document.querySelector("[data-new-post]").addEventListener("click", resetEditor);
-  document.querySelector("[data-add-section]").addEventListener("click", () => addSection());
+  document.querySelector("[data-add-weekly-section]").addEventListener("click", () => addWeeklySection());
+  document.querySelector("[data-add-story-section]").addEventListener("click", () => addStorySection());
   document.querySelector("[data-delete-post]").addEventListener("click", deletePost);
   postForm.addEventListener("submit", savePost);
 
+  Object.entries(fieldSections).forEach(([name, section]) => setSectionVisible(section, name === kind));
   client.auth.getSession().then(({ data }) => {
     if (data.session) showStudio(data.session);
     else showLogin();

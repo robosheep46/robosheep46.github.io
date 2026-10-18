@@ -15,7 +15,7 @@ create table if not exists public.profiles (
 
 create table if not exists public.posts (
   id uuid primary key default gen_random_uuid(),
-  kind text not null check (kind in ('moment', 'weekly')),
+  kind text not null check (kind in ('moment', 'weekly', 'story', 'photo')),
   slug text not null,
   title text not null default '',
   body text not null default '',
@@ -24,6 +24,7 @@ create table if not exists public.posts (
   status text not null default 'draft' check (status in ('draft', 'published', 'hidden')),
   happened_at timestamptz not null,
   published_at timestamptz,
+  sort_order integer not null default 0,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (kind, slug)
@@ -31,7 +32,7 @@ create table if not exists public.posts (
 
 create table if not exists public.comments (
   id uuid primary key default gen_random_uuid(),
-  target_kind text not null check (target_kind in ('life_image', 'robomaster_node', 'page')),
+  target_kind text not null check (target_kind in ('life_image', 'story_node', 'page')),
   target_key text not null check (target_key ~ '^[a-z0-9][a-z0-9._-]{0,79}$'),
   nickname text not null check (char_length(btrim(nickname)) between 1 and 20),
   body text not null check (char_length(btrim(body)) between 1 and 500),
@@ -42,6 +43,118 @@ create table if not exists public.comments (
 
 alter table public.comments
   add column if not exists author_id uuid references auth.users(id) on delete set null;
+
+alter table public.posts
+  add column if not exists sort_order integer not null default 0;
+
+alter table public.posts drop constraint if exists posts_kind_check;
+alter table public.posts
+  add constraint posts_kind_check check (kind in ('moment', 'weekly', 'story', 'photo'));
+
+alter table public.comments drop constraint if exists comments_target_kind_check;
+update public.comments
+set target_kind = 'story_node'
+where target_kind = 'robomaster_node';
+alter table public.comments
+  add constraint comments_target_kind_check check (target_kind in ('life_image', 'story_node', 'page'));
+
+insert into public.posts (
+  kind, slug, title, body, sections, images, status, happened_at, published_at, sort_order
+)
+values (
+  'story',
+  '2023-robomaster',
+  'RoboMaster',
+  '从想证明自己，到第一次真正看见代码动起来。',
+  $story$[
+    {
+      "key": "2023-09",
+      "month": "2023-09",
+      "heading": "我想证明，我不属于这里",
+      "paragraphs": [
+        "2023 年 9 月，我来到一所二本院校。",
+        "那时的我认定这所学校很差，也把来到这里视为一种失败。我觉得天塌了，甚至觉得这是一件无比耻辱的事。",
+        "大一上学期，我开始拼命证明自己。我想拿到军训标兵，想拿专业第一，想进入机甲大师实验室。我希望在每一个可以比较的地方赢下来，证明自己足够强，也证明自己不应该属于这里。",
+        "我想这样做，也确实做到了。那个学期，我拿到了军训标兵，拿到了全专业绩点第一，也成功加入了机甲大师实验室。按照当时的标准，这几乎是一个完美的结果。",
+        "现在回头看，那时的我不配打RM，因为我并不是真正热爱比赛，只是简单的证明失败的不是我罢了。"
+      ]
+    },
+    {
+      "key": "2024-01",
+      "month": "2024-01",
+      "heading": "我拿到了第一，却只会点灯",
+      "paragraphs": [
+        "加入实验室以后，我很快发现，“第一”并没有给我带来答案。",
+        "2024 年大一下学期，师兄开始给我安排各种工作：数据标注、训练模型、制作 PPT、整理 PPT 比赛要求的文档，还有视频剪辑。这些事情我都做了。我每天看起来很忙，也确实完成了不少任务。但如果问我在电控方面学会了什么，我很难给出一个像样的回答。",
+        "我就这样忙忙碌碌地虚度光阴。甚至看到此处，你都无法猜到我到底属于哪个组别。那我现在告诉你：电控组。如果你问当时的我会什么，我只能很诚实地回答：调用一个函数，然后点亮一盏灯。",
+        "当时还是打开教学视频，照着别人敲代码，编译、下载，只要灯亮了，就算成功。至于代码为什么要这样写，程序又是怎么运行起来的，我说不清楚。听起来有些荒唐，但当时确实如此。",
+        "我曾经以为，加入实验室就意味着自己已经迈进了技术的大门。后来才发现，我只是拿到了站在门口的资格。"
+      ]
+    },
+    {
+      "key": "2024-03",
+      "month": "2024-03",
+      "heading": "一场没赢的广东站",
+      "paragraphs": [
+        "2024 年 3 月，我作为梯队队员，第一次来到 RoboMaster 广东站。",
+        "那次比赛，我没有真正上场，主要站在一旁观察和学习。",
+        "赛场上有各种各样的机器人。有些车的结构、动作和完成度，光是看着就让人觉得很酷。",
+        "然后我再回头看自己的队伍。1V1 没赢，3V3 也没赢。一场胜利都没有。我第一次如此具体地看见，我们和别人之间究竟隔着多远。但真正让我感到无力的事情，还在比赛结束以后。"
+      ]
+    },
+    {
+      "key": "2024-04",
+      "month": "2024-04",
+      "heading": "第一次看技术报告",
+      "paragraphs": [
+        "比赛结束后，学长整理了大量文档和技术报告。里面记录着电控组在比赛中暴露出来的问题，也列出了许多需要继续整改的地方。学长希望后来的人能够接着做，把这些问题一个个解决掉。",
+        "问题是，当时电控组里没有大二成员，只有大三，技术传承中间几乎断了一层。而我没有真正写过代码，也没有独立解决过什么技术问题。报告里的每一个问题都在等人处理，可我连报告里在写什么都看不懂。",
+        "这就像有人把维修手册递给一个只会开灯的人，然后告诉他：接下来，你来修。"
+      ]
+    },
+    {
+      "key": "2024-05",
+      "month": "2024-05",
+      "heading": "第一个任务",
+      "paragraphs": [
+        "2024 年 5 月比赛结束后，刘可学长开始用任务的方式引导我。每个星期，他都会安排一个具体任务，让我自己查资料、理解，再想办法完成。",
+        "我依稀记得，第一周的任务是整理以前的代码。我要把散落在代码各处的变量写进结构体，再把不同的结构体集中到同一个头文件里。当时学校C语言课程只考到函数，所以那时的我既不知道什么是结构体，也不知道什么是头文件。我只能先去 B 站搜索“结构体是什么”，弄明白最基本的概念，再回到原来的代码里，一点点理解刘可学长到底要我改什么。"
+      ]
+    },
+    {
+      "key": "2024-06",
+      "month": "2024-06",
+      "heading": "第一次观察数据",
+      "paragraphs": [
+        "第二周的任务，是采集遥控器的数据。我继续跟着 B 站的视频，了解遥控器协议，了解串口，再尝试把这些刚刚认识的概念放进真实代码里。我在 Keil5 中把遥控器的数据加入 Watch 窗口。拨动了一下遥控器的摇杆。keil5里的数据也跟着发生了变化。",
+        "当时的我真的非常开心。因为我不再是只会点灯，而是能试着理解为什么这么做了，那是我第一次真切地感觉到，代码其实不是对着视频去照抄。",
+        "我曾经以为，“第一”就是答案。但在 2024 年 5 月，比起成绩单上的专业第一，那个跟着摇杆一起变化的数字，似乎更接近我真正想找到的东西。"
+      ]
+    }
+  ]$story$::jsonb,
+  '[{"url":"/media/archive-cover.jpg?v=1","path":""}]'::jsonb,
+  'published',
+  '2023-09-01 12:00:00+08',
+  '2023-09-01 12:00:00+08',
+  0
+)
+on conflict (kind, slug) do nothing;
+
+insert into public.posts (
+  kind, slug, title, body, sections, images, status, happened_at, published_at, sort_order
+)
+values
+  (
+    'photo', '2026-10-17-pork', '斌哥给我夹的锅包肉', '斌哥给我夹的锅包肉', '[]'::jsonb,
+    '[{"url":"/media/2026-10-17-pork.jpg","path":""}]'::jsonb,
+    'published', '2026-10-17 12:00:00+08', '2026-10-17 12:00:00+08', 0
+  ),
+  (
+    'photo', '2026-10-17-stew', '第二次和斌哥一起吃铁锅炖', '第二次和斌哥一起吃铁锅炖', '[]'::jsonb,
+    '[{"url":"/media/2026-10-17-stew.jpg","path":""}]'::jsonb,
+    'published', '2026-10-17 11:00:00+08', '2026-10-17 11:00:00+08', 1
+  )
+on conflict (kind, slug) do nothing;
 
 create or replace view public.public_comments as
 select
@@ -59,6 +172,9 @@ left join public.profiles on profiles.user_id = comments.author_id;
 
 create index if not exists posts_public_timeline_idx
   on public.posts (kind, status, happened_at desc);
+
+create index if not exists posts_public_order_idx
+  on public.posts (kind, status, sort_order asc);
 
 create index if not exists comments_target_timeline_idx
   on public.comments (target_kind, target_key, created_at asc);
@@ -143,6 +259,66 @@ drop trigger if exists posts_touch_updated_at on public.posts;
 create trigger posts_touch_updated_at
 before update on public.posts
 for each row execute function public.touch_updated_at();
+
+create or replace function public.cleanup_post_comments()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if tg_op = 'DELETE' then
+    if old.kind = 'story' then
+      delete from public.comments as comment
+      where comment.target_kind = 'story_node'
+        and exists (
+          select 1
+          from jsonb_array_elements(coalesce(old.sections, '[]'::jsonb)) as section
+          where section ->> 'key' = comment.target_key
+        );
+    elsif old.kind = 'photo' then
+      delete from public.comments
+      where target_kind = 'life_image'
+        and target_key = old.slug;
+    end if;
+    return old;
+  end if;
+
+  if old.kind = 'story' then
+    delete from public.comments as comment
+    where comment.target_kind = 'story_node'
+      and exists (
+        select 1
+        from jsonb_array_elements(coalesce(old.sections, '[]'::jsonb)) as old_section
+        where old_section ->> 'key' = comment.target_key
+      )
+      and (
+        new.kind <> 'story'
+        or not exists (
+          select 1
+          from jsonb_array_elements(coalesce(new.sections, '[]'::jsonb)) as new_section
+          where new_section ->> 'key' = comment.target_key
+        )
+      );
+  end if;
+
+  if old.kind = 'photo'
+    and (new.kind <> 'photo' or new.slug is distinct from old.slug) then
+    delete from public.comments
+    where target_kind = 'life_image'
+      and target_key = old.slug;
+  end if;
+
+  return new;
+end;
+$$;
+
+revoke all on function public.cleanup_post_comments() from public;
+
+drop trigger if exists posts_cleanup_comments on public.posts;
+create trigger posts_cleanup_comments
+after update of kind, slug, sections or delete on public.posts
+for each row execute function public.cleanup_post_comments();
 
 create or replace function public.validate_comment()
 returns trigger
@@ -378,7 +554,7 @@ create policy "Public creates comments"
 on public.comments for insert
 to anon, authenticated
 with check (
-  target_kind in ('life_image', 'robomaster_node', 'page')
+  target_kind in ('life_image', 'story_node', 'page')
   and target_key ~ '^[a-z0-9][a-z0-9._-]{0,79}$'
   and char_length(btrim(nickname)) between 1 and 20
   and char_length(btrim(body)) between 1 and 500
@@ -395,6 +571,8 @@ revoke all on table public.comments from anon, authenticated;
 grant insert (target_kind, target_key, nickname, body, parent_id, visitor_token)
   on table public.comments to anon, authenticated;
 grant delete on table public.comments to authenticated;
+grant select on table public.posts to anon, authenticated;
+grant insert, update, delete on table public.posts to authenticated;
 revoke all on table public.profiles from anon, authenticated;
 grant select on table public.profiles to authenticated;
 revoke all on table public.public_comments from anon, authenticated;

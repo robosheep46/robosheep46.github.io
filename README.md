@@ -1,6 +1,6 @@
 # robosheep 的小站
 
-一个公开的个人网站，用于记录成长档案、周报、生活相册、兴趣爱好和动态。公开页面保持原生 HTML、CSS、JavaScript，托管在 GitHub Pages；周报和动态通过 Supabase 提供私人发布后台。
+一个公开的个人网站，用于记录故事、周报、生活相册、兴趣爱好和动态。公开页面保持原生 HTML、CSS、JavaScript，托管在 GitHub Pages；故事、照片、周报和动态通过 Supabase 提供私人发布后台。
 
 ## 本地查看
 
@@ -18,7 +18,7 @@ npx serve .
 4. 修改并执行 [`supabase/grant-admin.sql`](./supabase/grant-admin.sql)，把占位邮箱替换成站长邮箱。
 5. 在 Supabase Project Settings > API 中找到 Project URL 和 anon public key。
 6. 把两项填写到 [`site-config.js`](./site-config.js)。匿名密钥用于受 RLS 保护的公开客户端，不要填写 `service_role` 密钥。
-7. 打开 `/admin.html` 登录。第一次进入周报页签时，点击“导入两篇旧周报”。
+7. 打开 `/admin.html` 登录。故事与照片的既有内容会由 `setup.sql` 自动迁移，无需在后台重复导入。
 
 ## 配置公开账号
 
@@ -34,9 +34,11 @@ npx serve .
 
 - `/stories/weekly.html`：公开周报目录
 - `/stories/moments.html`：公开动态时间线
+- `/stories/stories.html`：公开故事目录
+- `/stories/life.html`：公开生活相册
 - `/admin.html`：私人发布后台
 
-后台支持草稿、公开、隐藏、编辑、删除和评论管理。公开评论无需注册，受长度、一级回复、发送间隔和 RLS 权限约束；游客第一次发表时填写昵称，浏览器会静默记住。访客可在原浏览器删除自己的评论；注册或登录后，同一浏览器中过去的游客评论会自动归入账号，此后可跨设备删除。站长可以删除全部评论。上传图片会在浏览器中压缩为 JPEG，从而移除原图中的 EXIF 定位信息。
+后台支持动态、周报、故事和照片的新增、编辑、草稿、公开、隐藏与删除；故事可以维护按年月排序的时间节点，并通过拖动调整故事目录顺序。公开评论无需注册，受长度、一级回复、发送间隔和 RLS 权限约束；游客第一次发表时填写昵称，浏览器会静默记住。访客可在原浏览器删除自己的评论；注册或登录后，同一浏览器中过去的游客评论会自动归入账号，此后可跨设备删除。站长可以删除全部评论。上传图片会在浏览器中压缩为 JPEG，从而移除原图中的 EXIF 定位信息。
 
 ## 许可证
 

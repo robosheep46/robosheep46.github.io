@@ -1,7 +1,6 @@
 (() => {
   const store = window.contentStore;
-  const roots = [...document.querySelectorAll("[data-comments]")];
-  if (!roots.length) return;
+  if (!store) return;
 
   const SUBMIT_DELAY = 15000;
   const LAST_SUBMIT_KEY = "robosheep-comment-last-submit";
@@ -215,8 +214,11 @@
   };
 
   const mount = (root) => {
+    if (!root || root.dataset.commentsMounted === "true") return;
     const targetKind = root.dataset.commentKind;
     const targetKey = root.dataset.commentKey;
+    if (!targetKind || !targetKey) return;
+    root.dataset.commentsMounted = "true";
     let comments = [];
     let ownedIds = new Set();
     let replyTo = null;
@@ -450,5 +452,11 @@
     load();
   };
 
-  roots.forEach(mount);
+  const mountAll = (scope = document) => {
+    if (scope.matches?.("[data-comments]")) mount(scope);
+    scope.querySelectorAll?.("[data-comments]").forEach(mount);
+  };
+
+  window.robosheepComments = Object.freeze({ mount, mountAll });
+  mountAll();
 })();
