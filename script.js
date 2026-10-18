@@ -8,11 +8,24 @@ document.addEventListener("pointerdown", (event) => {
   ring.addEventListener("animationend", () => ring.remove());
 });
 
+const immersivePage = document.querySelector(".immersive-page");
+
+if (immersivePage) {
+  const backdrop = document.createElement("div");
+  backdrop.className = "inner-backdrop";
+  backdrop.setAttribute("aria-hidden", "true");
+  for (let index = 0; index < 4; index += 1) {
+    backdrop.append(document.createElement("span"));
+  }
+  document.body.prepend(backdrop);
+}
+
 (() => {
   const boot = document.querySelector(".boot");
   if (!boot) return;
   const fill = boot.querySelector(".boot-bar span");
-  const images = [...document.images];
+  const scopedImages = document.querySelectorAll(".hero img, .story img");
+  const images = [...(scopedImages.length ? scopedImages : document.images)];
   let total = images.length;
   let done = images.filter((img) => img.complete).length;
   let closed = false;
@@ -32,6 +45,13 @@ document.addEventListener("pointerdown", (event) => {
     done += 1;
     paint();
   };
+
+  window.setTimeout(() => {
+    if (closed) return;
+    closed = true;
+    boot.classList.add("is-done");
+    window.setTimeout(() => boot.remove(), 480);
+  }, 5000);
 
   images.forEach((img) => {
     if (img.complete) return;
@@ -58,6 +78,200 @@ document.addEventListener("pointerdown", (event) => {
 
   paint();
 })();
+
+(() => {
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const overlay = document.createElement("div");
+  overlay.className = "route-transition";
+  overlay.setAttribute("aria-hidden", "true");
+  document.body.append(overlay);
+
+  if (!reduced && !document.querySelector(".boot")) {
+    overlay.classList.add("is-covering");
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => overlay.classList.remove("is-covering"));
+    });
+  }
+
+  const leave = (href) => {
+    if (reduced) {
+      location.href = href;
+      return;
+    }
+    document.body.classList.add("is-route-leaving");
+    overlay.classList.add("is-covering");
+    window.setTimeout(() => {
+      location.href = href;
+    }, 430);
+  };
+
+  document.addEventListener("click", (event) => {
+    if (event.defaultPrevented || event.button !== 0) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const link = event.target.closest("a[href]");
+    if (!link || link.target === "_blank" || link.hasAttribute("download")) return;
+
+    const url = new URL(link.href, location.href);
+    const samePageHash =
+      url.origin === location.origin &&
+      url.pathname === location.pathname &&
+      url.search === location.search &&
+      Boolean(url.hash);
+    if (samePageHash || url.origin !== location.origin) return;
+    if (url.protocol !== "http:" && url.protocol !== "https:" && url.protocol !== "file:") return;
+
+    event.preventDefault();
+    leave(url.href);
+  });
+
+  window.addEventListener("pageshow", () => {
+    document.body.classList.remove("is-route-leaving");
+    overlay.classList.remove("is-covering");
+  });
+})();
+
+const navToggle = document.querySelector(".nav-toggle");
+const siteNav = document.querySelector("#site-nav");
+
+if (navToggle && siteNav) {
+  const closeNav = () => {
+    navToggle.setAttribute("aria-expanded", "false");
+    navToggle.title = "打开导航";
+    siteNav.classList.remove("is-open");
+  };
+
+  navToggle.addEventListener("click", () => {
+    const open = navToggle.getAttribute("aria-expanded") === "true";
+    navToggle.setAttribute("aria-expanded", open ? "false" : "true");
+    navToggle.title = open ? "打开导航" : "关闭导航";
+    siteNav.classList.toggle("is-open", !open);
+  });
+
+  siteNav.querySelectorAll("a").forEach((link) => link.addEventListener("click", closeNav));
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeNav();
+  });
+}
+
+const homeTopbar = document.querySelector(".home-page .topbar");
+const homeHero = document.querySelector(".home-page .hero");
+
+if (homeTopbar && homeHero) {
+  const syncTopbarTone = () => {
+    homeTopbar.classList.toggle("is-paper", window.scrollY >= homeHero.offsetHeight - 72);
+  };
+  syncTopbarTone();
+  window.addEventListener("scroll", syncTopbarTone, { passive: true });
+  window.addEventListener("resize", syncTopbarTone);
+}
+
+const paperTopbar = document.querySelector(".paper-page .topbar-paper");
+
+if (paperTopbar) {
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+  const immersive = document.body.classList.contains("immersive-page");
+  const syncPaperTopbar = () => {
+    const reading = window.scrollY >= (window.innerWidth <= 700 ? 240 : 340);
+    paperTopbar.classList.toggle("is-reading", reading);
+    if (themeMeta) themeMeta.content = immersive ? "#07101c" : (reading ? "#f2f2ee" : "#07101c");
+  };
+  syncPaperTopbar();
+  window.addEventListener("scroll", syncPaperTopbar, { passive: true });
+  window.addEventListener("resize", syncPaperTopbar);
+}
+
+const homeHub = document.querySelector(".home-hub");
+
+if (homeHub) {
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!reduced && "IntersectionObserver" in window) {
+    homeHub.classList.add("is-motion-ready");
+    const revealHub = new IntersectionObserver((entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      homeHub.classList.add("is-visible");
+      revealHub.disconnect();
+    }, { threshold: 0.12 });
+    revealHub.observe(homeHub);
+  } else {
+    homeHub.classList.add("is-visible");
+  }
+}
+
+const homePage = document.querySelector(".home-page");
+const themeToggle = document.querySelector("[data-theme-toggle]");
+
+const audioToggle = document.querySelector("[data-audio-toggle]");
+const homeAudio = document.querySelector("[data-home-audio]");
+
+if (audioToggle && homeAudio) {
+  const syncAudioState = () => {
+    const playing = !homeAudio.paused && !homeAudio.ended;
+    audioToggle.classList.toggle("is-playing", playing);
+    audioToggle.setAttribute("aria-pressed", playing ? "true" : "false");
+    audioToggle.setAttribute("aria-label", `${playing ? "暂停" : "播放"}《心做し》`);
+  };
+
+  audioToggle.addEventListener("click", async () => {
+    if (!homeAudio.paused) {
+      homeAudio.pause();
+      return;
+    }
+    try {
+      await homeAudio.play();
+    } catch (error) {
+      syncAudioState();
+    }
+  });
+
+  homeAudio.addEventListener("play", syncAudioState);
+  homeAudio.addEventListener("pause", syncAudioState);
+  homeAudio.addEventListener("ended", syncAudioState);
+  syncAudioState();
+}
+
+if (homePage && themeToggle) {
+  const storageKey = "robosheep-home-theme";
+  let savedTheme = "night";
+  try {
+    savedTheme = localStorage.getItem(storageKey) || "night";
+  } catch (error) {
+    savedTheme = "night";
+  }
+
+  const applyTheme = (theme) => {
+    const day = theme === "day";
+    homePage.classList.toggle("is-day", day);
+    themeToggle.setAttribute("aria-pressed", day ? "true" : "false");
+    themeToggle.setAttribute("aria-label", day ? "切换夜间模式" : "切换日间模式");
+    themeToggle.title = day ? "切换夜间模式" : "切换日间模式";
+  };
+
+  applyTheme(savedTheme);
+  themeToggle.addEventListener("click", () => {
+    const theme = homePage.classList.contains("is-day") ? "night" : "day";
+    applyTheme(theme);
+    try {
+      localStorage.setItem(storageKey, theme);
+    } catch (error) {
+      // The visual mode still works when local storage is unavailable.
+    }
+  });
+}
+
+const clockTarget = document.querySelector("[data-live-clock]");
+const dateTarget = document.querySelector("[data-live-date]");
+
+if (clockTarget && dateTarget) {
+  const padTime = (value) => String(value).padStart(2, "0");
+  const updateClock = () => {
+    const now = new Date();
+    clockTarget.textContent = [now.getHours(), now.getMinutes(), now.getSeconds()].map(padTime).join(":");
+    dateTarget.textContent = [now.getFullYear(), padTime(now.getMonth() + 1), padTime(now.getDate())].join(".");
+    clockTarget.dateTime = now.toISOString();
+  };
+  updateClock();
+  window.setInterval(updateClock, 1000);
+}
 
 document.querySelectorAll("[data-album]").forEach((album) => {
   const cards = [...album.querySelectorAll(".life-card")];
@@ -194,21 +408,32 @@ if (hero && frame && !reduceMotion) {
   const lerp = (from, to, amount) => from + (to - from) * amount;
   const ease = (amount) =>
     amount < 0.5 ? 2 * amount * amount : 1 - ((-2 * amount + 2) ** 2) / 2;
+  const heroCopy = hero.querySelector(".hero-copy");
 
-  const tilt = () => {
+  const focusOut = () => {
     const height = hero.offsetHeight || 1;
-    const progress = Math.min(1, Math.max(0, window.scrollY / (height * 0.5)));
+    const progress = Math.min(1, Math.max(0, window.scrollY / (height * 0.92)));
     const eased = ease(progress);
-    frame.style.clipPath = `polygon(${lerp(0, 14, eased)}% 0%, ${lerp(100, 72, eased)}% 0%, ${lerp(100, 88, eased)}% ${lerp(100, 90, eased)}%, 0% ${lerp(100, 95, eased)}%)`;
-    frame.style.borderRadius = `0% 0% ${lerp(0, 40, eased)}% ${lerp(0, 10, eased)}%`;
+    frame.style.transform = `scale(${lerp(1, 1.09, eased)})`;
+    frame.style.filter = `blur(${lerp(0, 16, eased)}px)`;
+    frame.style.opacity = String(lerp(1, 0, Math.min(1, eased * 2)));
+    const solidUntil = lerp(100, 54, eased);
+    const fadeUntil = lerp(100, 88, eased);
+    const mask = `linear-gradient(to bottom, #000 0%, #000 ${solidUntil}%, transparent ${fadeUntil}%, transparent 100%)`;
+    frame.style.maskImage = mask;
+    frame.style.webkitMaskImage = mask;
+    if (heroCopy) {
+      heroCopy.style.opacity = String(lerp(1, 0, Math.min(1, eased * 1.4)));
+      heroCopy.style.transform = `translateY(${lerp(0, -18, eased)}px)`;
+    }
   };
 
   const onScroll = () => {
     cancelAnimationFrame(ticking);
-    ticking = requestAnimationFrame(tilt);
+    ticking = requestAnimationFrame(focusOut);
   };
 
-  tilt();
+  focusOut();
   window.addEventListener("scroll", onScroll, { passive: true });
   document.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("resize", onScroll);

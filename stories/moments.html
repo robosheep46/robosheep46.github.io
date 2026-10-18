@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="robosheep 的即时生活记录。" />
+    <meta name="theme-color" content="#07101c" />
+    <title>动态｜robosheep 的小站</title>
+    <link rel="stylesheet" href="../styles.css?v=87" />
+    <script src="../site-config.js?v=1" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="../content-store.js?v=1" defer></script>
+    <script src="../moments.js?v=2" defer></script>
+    <script src="../script.js?v=37" defer></script>
+  </head>
+  <body class="paper-page immersive-page" style="--inner-banner: url('../media/opening.jpg?v=13')">
+    <a class="skip-link" href="#moments">跳到正文</a>
+    <header class="topbar topbar-paper">
+      <a class="brand" href="../index.html">robosheep 的小站</a>
+      <a class="top-link" href="../index.html#home-hub">返回首页</a>
+    </header>
+
+    <main class="moments-shell" id="moments">
+      <header class="moments-head entry-band">
+        <p class="paper-eyebrow">MOMENTS</p>
+        <h1>一些不想<br />忘记的此刻。</h1>
+      </header>
+      <section class="moments-timeline" data-moments-list aria-live="polite">
+        <p class="content-loading">正在读取动态...</p>
+      </section>
+    </main>
+
+    <dialog class="image-viewer" data-image-viewer>
+      <button type="button" data-image-viewer-close aria-label="关闭图片" title="关闭">×</button>
+      <img src="" alt="动态图片大图" data-image-viewer-image />
+    </dialog>
+
+    <footer class="paper-foot">
+      <a href="../index.html#home-hub">返回首页</a>
+      <span>robosheep 的小站</span>
+    </footer>
+  </body>
+</html>

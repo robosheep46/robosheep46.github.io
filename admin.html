@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#171919" />
+    <title>内容后台｜robosheep 的小站</title>
+    <link rel="stylesheet" href="./styles.css?v=83" />
+    <script src="./site-config.js?v=1" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="./content-store.js?v=1" defer></script>
+    <script src="./admin.js?v=1" defer></script>
+  </head>
+  <body class="admin-page">
+    <main class="admin-shell">
+      <section class="admin-login" data-admin-login>
+        <header>
+          <p>ROBOSHEEP CONTENT STUDIO</p>
+          <h1>登录</h1>
+        </header>
+        <p class="admin-setup-warning" data-config-warning hidden>Supabase 尚未配置，请先完成项目根目录中的配置说明。</p>
+        <form data-login-form>
+          <label>
+            邮箱
+            <input type="email" name="email" autocomplete="username" required />
+          </label>
+          <label>
+            密码
+            <input type="password" name="password" autocomplete="current-password" required />
+          </label>
+          <button type="submit">登录</button>
+          <p class="admin-form-message" data-login-message aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section class="admin-studio" data-admin-studio hidden>
+        <header class="admin-bar">
+          <div>
+            <p>ROBOSHEEP CONTENT STUDIO</p>
+            <strong data-admin-email></strong>
+          </div>
+          <div class="admin-bar-actions">
+            <a href="./index.html" target="_blank" rel="noopener">查看网站</a>
+            <button type="button" data-sign-out>退出</button>
+          </div>
+        </header>
+
+        <div class="admin-layout">
+          <aside class="admin-library">
+            <div class="admin-segmented" role="tablist" aria-label="内容类型">
+              <button type="button" role="tab" aria-selected="true" data-kind-tab="moment">动态</button>
+              <button type="button" role="tab" aria-selected="false" data-kind-tab="weekly">周报</button>
+            </div>
+            <button class="admin-new" type="button" data-new-post>新建动态</button>
+            <button class="admin-import" type="button" data-import-weeklies hidden>导入两篇旧周报</button>
+            <div class="admin-post-list" data-post-list aria-live="polite"></div>
+          </aside>
+
+          <section class="admin-editor">
+            <form data-post-form>
+              <input type="hidden" name="id" />
+              <div class="admin-editor-head">
+                <div>
+                  <p data-editor-kicker>新建动态</p>
+                  <h1 data-editor-title>尚未保存</h1>
+                </div>
+                <div class="admin-editor-actions">
+                  <button type="button" class="admin-danger" data-delete-post hidden>删除</button>
+                  <button type="submit" class="admin-primary">保存</button>
+                </div>
+              </div>
+
+              <div class="admin-fields">
+                <label>
+                  状态
+                  <select name="status">
+                    <option value="draft">草稿</option>
+                    <option value="published">公开</option>
+                    <option value="hidden">隐藏</option>
+                  </select>
+                </label>
+                <label>
+                  发生时间
+                  <input type="datetime-local" name="happened_at" required />
+                </label>
+              </div>
+
+              <section data-moment-fields>
+                <label class="admin-block-label">
+                  正文
+                  <textarea name="body" rows="9" maxlength="4000" placeholder="写下这个此刻..."></textarea>
+                </label>
+                <label class="admin-upload-label">
+                  添加图片
+                  <input type="file" name="moment_images" accept="image/*" multiple />
+                </label>
+                <div class="admin-image-strip" data-moment-existing-images></div>
+              </section>
+
+              <section data-weekly-fields hidden>
+                <label class="admin-block-label">
+                  周报标题
+                  <input type="text" name="title" maxlength="100" placeholder="这一周的标题" />
+                </label>
+                <div class="admin-sections" data-sections></div>
+                <button type="button" class="admin-add-section" data-add-section>＋ 添加段落</button>
+              </section>
+
+              <p class="admin-save-message" data-save-message aria-live="polite"></p>
+            </form>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <template id="section-editor-template">
+      <article class="admin-section-editor" data-section-editor>
+        <header>
+          <span data-section-number>01</span>
+          <button type="button" data-remove-section title="删除这一段" aria-label="删除这一段">×</button>
+        </header>
+        <label>
+          小标题
+          <input type="text" data-section-heading maxlength="100" required />
+        </label>
+        <label>
+          正文
+          <textarea data-section-body rows="7" placeholder="不同段落之间空一行"></textarea>
+        </label>
+        <label class="admin-upload-label">
+          添加图片
+          <input type="file" data-section-files accept="image/*" multiple />
+        </label>
+        <div class="admin-image-strip" data-section-existing-images></div>
+      </article>
+    </template>
+  </body>
+</html>
