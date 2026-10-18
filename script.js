@@ -200,32 +200,139 @@ if (homeHub) {
 const homePage = document.querySelector(".home-page");
 const themeToggle = document.querySelector("[data-theme-toggle]");
 
-const audioToggle = document.querySelector("[data-audio-toggle]");
-const homeAudio = document.querySelector("[data-home-audio]");
+const immersiveTopbar = document.querySelector(".immersive-page .topbar");
 
-if (audioToggle && homeAudio) {
+if (immersiveTopbar && !document.querySelector("[data-audio-toggle]")) {
+  const scriptUrl = document.currentScript?.src || new URL("../script.js", document.baseURI).href;
+  const audioSource = new URL("./media/kokoronashi-shuangsheng.mp3", scriptUrl).href;
+  const topbarLink = immersiveTopbar.querySelector(".top-link");
+  const actions = document.createElement("div");
+  const button = document.createElement("button");
+  const audio = document.createElement("audio");
+
+  actions.className = "topbar-actions";
+  button.className = "inner-music";
+  button.type = "button";
+  button.dataset.audioToggle = "";
+  button.setAttribute("aria-pressed", "false");
+  button.setAttribute("aria-label", "播放《心做し》");
+  button.title = "播放《心做し》";
+  button.innerHTML = '<span class="music-play" aria-hidden="true"></span>';
+
+  audio.dataset.siteAudio = "";
+  audio.preload = "none";
+  audio.src = audioSource;
+
+  actions.append(button);
+  if (topbarLink) actions.append(topbarLink);
+  immersiveTopbar.append(actions);
+  document.body.append(audio);
+}
+
+const audioToggle = document.querySelector("[data-audio-toggle]");
+const siteAudio = document.querySelector("[data-home-audio], [data-site-audio]");
+
+if (audioToggle && siteAudio) {
+  const storageKey = "robosheep-audio-state";
+  let lastStoredAt = 0;
+
+  const readAudioState = () => {
+    try {
+      const state = JSON.parse(sessionStorage.getItem(storageKey) || "null");
+      if (!state || !Number.isFinite(state.currentTime)) return null;
+      return state;
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const savedState = readAudioState();
+  let hasAudioState = Boolean(savedState);
+
+  const storeAudioState = (force = false) => {
+    if (!hasAudioState && siteAudio.paused && siteAudio.currentTime === 0) return;
+    const now = Date.now();
+    if (!force && now - lastStoredAt < 800) return;
+    lastStoredAt = now;
+    try {
+      sessionStorage.setItem(storageKey, JSON.stringify({
+        currentTime: Number.isFinite(siteAudio.currentTime) ? siteAudio.currentTime : 0,
+        playing: !siteAudio.paused && !siteAudio.ended,
+        savedAt: now
+      }));
+    } catch (error) {
+      // Playback still works when session storage is unavailable.
+    }
+  };
+
   const syncAudioState = () => {
-    const playing = !homeAudio.paused && !homeAudio.ended;
+    const playing = !siteAudio.paused && !siteAudio.ended;
     audioToggle.classList.toggle("is-playing", playing);
     audioToggle.setAttribute("aria-pressed", playing ? "true" : "false");
     audioToggle.setAttribute("aria-label", `${playing ? "暂停" : "播放"}《心做し》`);
+    audioToggle.title = `${playing ? "暂停" : "播放"}《心做し》`;
   };
 
   audioToggle.addEventListener("click", async () => {
-    if (!homeAudio.paused) {
-      homeAudio.pause();
+    if (!siteAudio.paused) {
+      siteAudio.pause();
       return;
     }
     try {
-      await homeAudio.play();
+      await siteAudio.play();
     } catch (error) {
       syncAudioState();
     }
   });
 
-  homeAudio.addEventListener("play", syncAudioState);
-  homeAudio.addEventListener("pause", syncAudioState);
-  homeAudio.addEventListener("ended", syncAudioState);
+  siteAudio.addEventListener("play", () => {
+    hasAudioState = true;
+    syncAudioState();
+    storeAudioState(true);
+  });
+  siteAudio.addEventListener("pause", () => {
+    syncAudioState();
+    storeAudioState(true);
+  });
+  siteAudio.addEventListener("timeupdate", () => storeAudioState());
+  siteAudio.addEventListener("ended", () => {
+    siteAudio.currentTime = 0;
+    syncAudioState();
+    storeAudioState(true);
+  });
+  window.addEventListener("pagehide", () => storeAudioState(true));
+
+  if (savedState) {
+    const restoreAudio = async () => {
+      const elapsed = savedState.playing
+        ? Math.min(10, Math.max(0, (Date.now() - (savedState.savedAt || Date.now())) / 1000))
+        : 0;
+      const resumeAt = savedState.currentTime + elapsed;
+      const lastPlayableSecond = Number.isFinite(siteAudio.duration)
+        ? Math.max(0, siteAudio.duration - 0.25)
+        : resumeAt;
+      siteAudio.currentTime = Math.min(resumeAt, lastPlayableSecond);
+      if (!savedState.playing) {
+        syncAudioState();
+        return;
+      }
+      try {
+        await siteAudio.play();
+      } catch (error) {
+        syncAudioState();
+        storeAudioState(true);
+      }
+    };
+
+    if (siteAudio.readyState >= 1) {
+      restoreAudio();
+    } else {
+      siteAudio.addEventListener("loadedmetadata", restoreAudio, { once: true });
+      siteAudio.preload = "metadata";
+      siteAudio.load();
+    }
+  }
+
   syncAudioState();
 }
 
