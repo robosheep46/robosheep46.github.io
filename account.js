@@ -25,6 +25,7 @@
     hashParams.get("type") === "recovery";
   let mode = recoveryFlow ? "reset" : "login";
   let redirecting = false;
+  const avatarCacheVersion = Date.now().toString(36);
 
   const safeReturnUrl = () => {
     const fallback = new URL("./index.html#home-hub", location.href);
@@ -52,6 +53,18 @@
     form.querySelectorAll("button, input").forEach((control) => {
       control.disabled = busy;
     });
+  };
+
+  const freshAvatarUrl = (avatarUrl) => {
+    try {
+      const url = new URL(avatarUrl);
+      if (url.hostname === "avatars.githubusercontent.com") {
+        url.searchParams.set("robosheep_refresh", avatarCacheVersion);
+      }
+      return url.href;
+    } catch {
+      return avatarUrl;
+    }
   };
 
   const showMode = (nextMode) => {
@@ -112,7 +125,7 @@
     avatar.replaceChildren();
     if (profile.avatar_url) {
       const image = document.createElement("img");
-      image.src = profile.avatar_url;
+      image.src = freshAvatarUrl(profile.avatar_url);
       image.alt = "";
       image.referrerPolicy = "no-referrer";
       avatar.append(image);

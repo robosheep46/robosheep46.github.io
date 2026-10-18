@@ -10,6 +10,7 @@
   const accountListeners = new Set();
   let authState = { session: null, user: null, profile: null };
   let claimPromise = null;
+  const avatarCacheVersion = Date.now().toString(36);
 
   const escapeText = (value) => String(value ?? "");
   const formatTime = (value) => new Intl.DateTimeFormat("zh-CN", {
@@ -104,12 +105,24 @@
     total + character.codePointAt(0)
   ), 0) % 5;
 
+  const freshAvatarUrl = (avatarUrl) => {
+    try {
+      const url = new URL(avatarUrl);
+      if (url.hostname === "avatars.githubusercontent.com") {
+        url.searchParams.set("robosheep_refresh", avatarCacheVersion);
+      }
+      return url.href;
+    } catch {
+      return avatarUrl;
+    }
+  };
+
   const createAvatar = (nickname, avatarUrl = "") => {
     const avatar = document.createElement("span");
     avatar.className = `comment-avatar comment-avatar-${avatarTone(nickname)}`;
     if (avatarUrl) {
       const image = document.createElement("img");
-      image.src = avatarUrl;
+      image.src = freshAvatarUrl(avatarUrl);
       image.alt = "";
       image.referrerPolicy = "no-referrer";
       avatar.append(image);
