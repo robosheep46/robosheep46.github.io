@@ -40,15 +40,18 @@
     const identity =
       new URLSearchParams(location.search).get("id") ||
       new URLSearchParams(location.hash.slice(1)).get("id");
+    const commentsRoot = root.parentElement?.querySelector("[data-comments]");
     if (!identity) {
       root.innerHTML = '<p class="content-empty">没有找到这篇周报。</p>';
       return;
     }
+    if (commentsRoot) commentsRoot.dataset.commentKey = `weekly-${identity}`;
     const post = await store.getPublished("weekly", identity);
     if (!post) {
       root.innerHTML = '<p class="content-empty">这篇周报不存在或尚未公开。</p>';
       return;
     }
+    if (commentsRoot) commentsRoot.hidden = false;
 
     document.title = `${post.title}｜robosheep 的小站`;
     const header = document.createElement("header");
