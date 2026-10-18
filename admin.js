@@ -20,6 +20,12 @@
   const commentsManager = document.querySelector("[data-comments-manager]");
   const commentsList = document.querySelector("[data-admin-comments-list]");
   const commentsMessage = document.querySelector("[data-comments-message]");
+  const contentTitle = document.querySelector("[data-content-title]");
+  const contentDescription = document.querySelector("[data-content-description]");
+  const contentCount = document.querySelector("[data-content-count]");
+  const listMessage = document.querySelector("[data-list-message]");
+  const sidebarToggle = document.querySelector("[data-sidebar-toggle]");
+  const sidebarOverlay = document.querySelector("[data-sidebar-overlay]");
   const fieldSections = {
     moment: document.querySelector("[data-moment-fields]"),
     weekly: document.querySelector("[data-weekly-fields]"),
@@ -27,6 +33,12 @@
     photo: document.querySelector("[data-photo-fields]"),
   };
   const kindLabels = { moment: "动态", weekly: "周报", story: "故事", photo: "照片" };
+  const kindDescriptions = {
+    moment: "记录正在发生的日常片段。",
+    weekly: "整理每一周的学习、生活与思考。",
+    story: "用时间节点讲述一段完整经历。",
+    photo: "保存日常里值得被记住的画面。",
+  };
 
   let kind = "moment";
   let posts = [];
@@ -34,6 +46,22 @@
   let removedPaths = [];
   let pendingUploadPaths = [];
   let draggedStoryId = "";
+
+  const refreshIcons = () => window.lucide?.createIcons({ attrs: { width: 16, height: 16 } });
+
+  const closeSidebar = () => {
+    studio.classList.remove("is-sidebar-open");
+    sidebarToggle.setAttribute("aria-expanded", "false");
+    sidebarOverlay.hidden = true;
+  };
+
+  const showView = (view) => {
+    postControls.hidden = view !== "list";
+    postEditor.hidden = view !== "editor";
+    commentsManager.hidden = view !== "comments";
+    closeSidebar();
+    window.scrollTo({ top: 0, behavior: "auto" });
+  };
 
   const setMessage = (node, message, tone = "") => {
     node.textContent = message;
@@ -105,6 +133,7 @@
     });
     weeklySectionsRoot.append(fragment);
     updateWeeklyNumbers();
+    refreshIcons();
   };
 
   const updateStoryNumbers = () => {
@@ -132,6 +161,7 @@
     });
     storySectionsRoot.append(fragment);
     updateStoryNumbers();
+    refreshIcons();
   };
 
   const setSectionVisible = (section, visible) => {
@@ -143,20 +173,21 @@
 
   const setKind = (nextKind) => {
     kind = nextKind;
-    commentsTab.setAttribute("aria-selected", "false");
-    postControls.hidden = false;
-    postEditor.hidden = false;
-    commentsManager.hidden = true;
+    currentPost = null;
+    commentsTab.setAttribute("aria-current", "false");
     document.querySelectorAll("[data-kind-tab]").forEach((tab) => {
-      tab.setAttribute("aria-selected", tab.dataset.kindTab === kind ? "true" : "false");
+      tab.setAttribute("aria-current", tab.dataset.kindTab === kind ? "page" : "false");
     });
-    document.querySelector("[data-new-post]").textContent = `新建${kindLabels[kind]}`;
+    document.querySelector("[data-new-post] span").textContent = `新建${kindLabels[kind]}`;
+    contentTitle.textContent = kindLabels[kind];
+    contentDescription.textContent = kindDescriptions[kind];
     Object.entries(fieldSections).forEach(([name, section]) => setSectionVisible(section, name === kind));
     const showHappenedAt = kind === "moment" || kind === "weekly";
     happenedField.hidden = !showHappenedAt;
     postForm.elements.happened_at.disabled = !showHappenedAt;
     renderPostList();
-    resetEditor();
+    setMessage(listMessage, "");
+    showView("list");
   };
 
   const commentTargetLabel = (comment) => {
@@ -173,25 +204,38 @@
       return;
     }
     const byId = new Map(comments.map((comment) => [comment.id, comment]));
-    commentsList.replaceChildren(...comments.map((comment) => {
-      const article = document.createElement("article");
-      article.className = "admin-comment-item";
-      const meta = document.createElement("div");
-      meta.className = "admin-comment-meta";
+    const tableWrap = document.createElement("div");
+    tableWrap.className = "admin-table-wrap";
+    const table = document.createElement("table");
+    table.className = "admin-table admin-comments-table";
+    table.innerHTML = "<thead><tr><th>用户</th><th>位置</th><th>留言内容</th><th>发表时间</th><th><span class=\"admin-visually-hidden\">操作</span></th></tr></thead>";
+    const tbody = document.createElement("tbody");
+    comments.forEach((comment) => {
+      const row = document.createElement("tr");
+      const authorCell = document.createElement("td");
       const nickname = document.createElement("strong");
       nickname.textContent = comment.nickname;
+      authorCell.append(nickname);
+      const targetCell = document.createElement("td");
       const target = document.createElement("span");
       target.textContent = commentTargetLabel(comment);
-      const time = document.createElement("time");
-      time.dateTime = comment.created_at;
-      time.textContent = new Date(comment.created_at).toLocaleString("zh-CN", { hour12: false });
-      meta.append(nickname, target, time);
+      targetCell.append(target);
+      const bodyCell = document.createElement("td");
+      bodyCell.className = "admin-comment-body";
       const body = document.createElement("p");
       const parent = comment.parent_id ? byId.get(comment.parent_id) : null;
       body.textContent = parent ? `回复 ${parent.nickname}：${comment.body}` : comment.body;
+      bodyCell.append(body);
+      const timeCell = document.createElement("td");
+      const time = document.createElement("time");
+      time.dateTime = comment.created_at;
+      time.textContent = new Date(comment.created_at).toLocaleString("zh-CN", { hour12: false });
+      timeCell.append(time);
+      const actionCell = document.createElement("td");
+      actionCell.className = "admin-table-action";
       const remove = document.createElement("button");
       remove.type = "button";
-      remove.className = "admin-danger";
+      remove.className = "admin-table-button admin-danger";
       remove.textContent = "删除";
       remove.addEventListener("click", async () => {
         const warning = comment.parent_id ? "确定删除这条回复吗？" : "确定删除这条评论吗？它下面的回复也会一起删除。";
@@ -206,9 +250,13 @@
         setMessage(commentsMessage, "评论已删除", "success");
         await loadComments();
       });
-      article.append(meta, body, remove);
-      return article;
-    }));
+      actionCell.append(remove);
+      row.append(authorCell, targetCell, bodyCell, timeCell, actionCell);
+      tbody.append(row);
+    });
+    table.append(tbody);
+    tableWrap.append(table);
+    commentsList.replaceChildren(tableWrap);
   };
 
   const loadComments = async () => {
@@ -227,11 +275,9 @@
   };
 
   const showComments = async () => {
-    document.querySelectorAll("[data-kind-tab]").forEach((tab) => tab.setAttribute("aria-selected", "false"));
-    commentsTab.setAttribute("aria-selected", "true");
-    postControls.hidden = true;
-    postEditor.hidden = true;
-    commentsManager.hidden = false;
+    document.querySelectorAll("[data-kind-tab]").forEach((tab) => tab.setAttribute("aria-current", "false"));
+    commentsTab.setAttribute("aria-current", "page");
+    showView("comments");
     await loadComments();
   };
 
@@ -255,10 +301,21 @@
     if (kind === "story") addStorySection();
     setMessage(saveMessage, "");
     renderPostList();
+    showView("editor");
+    refreshIcons();
   };
 
   const editPost = (post) => {
-    if (post.kind !== kind) setKind(post.kind);
+    if (post.kind !== kind) {
+      kind = post.kind;
+      document.querySelectorAll("[data-kind-tab]").forEach((tab) => {
+        tab.setAttribute("aria-current", tab.dataset.kindTab === kind ? "page" : "false");
+      });
+      Object.entries(fieldSections).forEach(([name, section]) => setSectionVisible(section, name === kind));
+      const showHappenedAt = kind === "moment" || kind === "weekly";
+      happenedField.hidden = !showHappenedAt;
+      postForm.elements.happened_at.disabled = !showHappenedAt;
+    }
     currentPost = post;
     removedPaths = [];
     postForm.elements.id.value = post.id;
@@ -299,6 +356,8 @@
     }
     setMessage(saveMessage, "");
     renderPostList();
+    showView("editor");
+    refreshIcons();
   };
 
   const sortedPosts = () => posts
@@ -308,7 +367,7 @@
       : new Date(b.happened_at) - new Date(a.happened_at));
 
   const persistStoryOrder = async (ordered) => {
-    setMessage(saveMessage, "正在保存故事顺序...");
+    setMessage(listMessage, "正在保存顺序...");
     const results = await Promise.all(ordered.map((post, index) => client
       .from("posts")
       .update({ sort_order: index })
@@ -316,55 +375,43 @@
       .select("id")));
     const failure = results.find(({ error, data }) => error || !data?.length);
     if (failure) {
-      setMessage(saveMessage, failure.error?.message || "故事顺序没有写入数据库，请先执行最新 setup.sql", "error");
+      setMessage(listMessage, failure.error?.message || "故事顺序没有写入数据库，请先执行最新 setup.sql", "error");
       await loadPosts();
       return;
     }
     ordered.forEach((post, index) => { post.sort_order = index; });
-    setMessage(saveMessage, "故事顺序已保存", "success");
+    setMessage(listMessage, "故事顺序已保存", "success");
     renderPostList();
   };
 
-  const makePostButton = (post) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "admin-post-item";
-    if (currentPost?.id === post.id) button.classList.add("is-active");
-    const status = document.createElement("span");
-    status.textContent = { draft: "草稿", published: "公开", hidden: "隐藏" }[post.status] || post.status;
-    const title = document.createElement("strong");
-    title.textContent = post.title || post.body?.slice(0, 36) || "未命名";
-    const date = document.createElement("time");
-    date.textContent = kind === "story" ? "拖动调整顺序" : store.dateLabel(post.happened_at);
-    button.append(status, title, date);
-    button.addEventListener("click", () => editPost(post));
-    return button;
+  const postTitle = (post) => post.title || post.body?.slice(0, 48) || "未命名";
+
+  const formatTableDate = (value) => {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "-";
+    return date.toLocaleDateString("zh-CN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
   };
 
-  const renderPostList = () => {
-    const visible = sortedPosts();
-    if (!visible.length) {
-      postList.innerHTML = '<p class="admin-empty">还没有内容。</p>';
-      return;
-    }
-    if (kind !== "story") {
-      postList.replaceChildren(...visible.map(makePostButton));
-      return;
-    }
+  const makePostRow = (post, draggable = false) => {
+    const row = document.createElement("tr");
+    row.dataset.postId = post.id;
+    if (currentPost?.id === post.id) row.classList.add("is-active");
 
-    const note = document.createElement("p");
-    note.className = "admin-sort-note";
-    note.textContent = "拖动故事可调整公开列表顺序";
-    const rows = visible.map((post) => {
-      const row = document.createElement("div");
-      row.className = "admin-post-row";
+    if (draggable) {
       row.draggable = true;
-      row.dataset.postId = post.id;
+      const dragCell = document.createElement("td");
+      dragCell.className = "admin-drag-cell";
       const handle = document.createElement("span");
       handle.className = "admin-drag-handle";
       handle.textContent = "⋮⋮";
-      handle.setAttribute("aria-hidden", "true");
-      row.append(handle, makePostButton(post));
+      handle.setAttribute("aria-label", "拖动调整顺序");
+      dragCell.append(handle);
+      row.append(dragCell);
       row.addEventListener("dragstart", () => {
         draggedStoryId = post.id;
         row.classList.add("is-dragging");
@@ -384,9 +431,68 @@
         renderPostList();
         await persistStoryOrder(reordered);
       });
-      return row;
+    }
+
+    const titleCell = document.createElement("td");
+    titleCell.className = "admin-title-cell";
+    const titleButton = document.createElement("button");
+    titleButton.type = "button";
+    titleButton.className = "admin-table-title";
+    titleButton.textContent = postTitle(post);
+    titleButton.addEventListener("click", () => editPost(post));
+    titleCell.append(titleButton);
+
+    const statusCell = document.createElement("td");
+    const status = document.createElement("span");
+    status.className = `admin-status admin-status-${post.status}`;
+    status.textContent = { draft: "草稿", published: "公开", hidden: "隐藏" }[post.status] || post.status;
+    statusCell.append(status);
+
+    const happenedCell = document.createElement("td");
+    happenedCell.textContent = formatTableDate(post.happened_at);
+    const updatedCell = document.createElement("td");
+    updatedCell.textContent = formatTableDate(post.updated_at || post.created_at || post.happened_at);
+
+    const actionCell = document.createElement("td");
+    actionCell.className = "admin-table-action";
+    const edit = document.createElement("button");
+    edit.type = "button";
+    edit.className = "admin-table-button";
+    edit.textContent = "编辑";
+    edit.addEventListener("click", () => editPost(post));
+    actionCell.append(edit);
+    row.append(titleCell, statusCell, happenedCell, updatedCell, actionCell);
+    row.addEventListener("click", (event) => {
+      if (!event.target.closest("button")) editPost(post);
     });
-    postList.replaceChildren(note, ...rows);
+    return row;
+  };
+
+  const renderPostList = () => {
+    const visible = sortedPosts();
+    contentCount.textContent = `${visible.length} 条内容`;
+    if (!visible.length) {
+      postList.innerHTML = `<div class="admin-empty-state"><strong>还没有${kindLabels[kind]}</strong><span>点击右上角的新建按钮开始记录。</span></div>`;
+      return;
+    }
+    const wrapper = document.createElement("div");
+    wrapper.className = "admin-table-wrap";
+    const table = document.createElement("table");
+    table.className = "admin-table";
+    const dragHeading = kind === "story" ? '<th class="admin-drag-cell"><span class="admin-visually-hidden">排序</span></th>' : "";
+    table.innerHTML = `<thead><tr>${dragHeading}<th>标题</th><th>状态</th><th>日期</th><th>最后更新</th><th><span class="admin-visually-hidden">操作</span></th></tr></thead>`;
+    const tbody = document.createElement("tbody");
+    visible.forEach((post) => tbody.append(makePostRow(post, kind === "story")));
+    table.append(tbody);
+    wrapper.append(table);
+    if (kind === "story") {
+      const note = document.createElement("p");
+      note.className = "admin-sort-note";
+      note.textContent = "拖动左侧手柄可以调整故事在公开列表中的顺序。";
+      postList.replaceChildren(note, wrapper);
+    } else {
+      postList.replaceChildren(wrapper);
+    }
   };
 
   const loadPosts = async () => {
@@ -627,7 +733,10 @@
       if (storageError) setMessage(saveMessage, "内容已删除，但图片文件清理失败", "error");
     }
     await loadPosts();
-    resetEditor();
+    currentPost = null;
+    renderPostList();
+    setMessage(listMessage, `${kindLabels[kind]}已删除`, "success");
+    showView("list");
   };
 
   const showStudio = async (session) => {
@@ -641,7 +750,8 @@
     studio.hidden = false;
     document.querySelector("[data-admin-email]").textContent = session.user.email;
     await loadPosts();
-    resetEditor();
+    setKind("moment");
+    refreshIcons();
     return true;
   };
 
@@ -674,6 +784,7 @@
 
   document.querySelector("[data-sign-out]").addEventListener("click", async () => {
     await client.auth.signOut();
+    closeSidebar();
     showLogin();
   });
   document.querySelectorAll("[data-kind-tab]").forEach((tab) => {
@@ -682,12 +793,25 @@
   commentsTab.addEventListener("click", showComments);
   document.querySelector("[data-refresh-comments]").addEventListener("click", loadComments);
   document.querySelector("[data-new-post]").addEventListener("click", resetEditor);
+  document.querySelector("[data-back-to-list]").addEventListener("click", () => {
+    currentPost = null;
+    renderPostList();
+    showView("list");
+  });
+  sidebarToggle.addEventListener("click", () => {
+    const open = !studio.classList.contains("is-sidebar-open");
+    studio.classList.toggle("is-sidebar-open", open);
+    sidebarToggle.setAttribute("aria-expanded", String(open));
+    sidebarOverlay.hidden = !open;
+  });
+  sidebarOverlay.addEventListener("click", closeSidebar);
   document.querySelector("[data-add-weekly-section]").addEventListener("click", () => addWeeklySection());
   document.querySelector("[data-add-story-section]").addEventListener("click", () => addStorySection());
   document.querySelector("[data-delete-post]").addEventListener("click", deletePost);
   postForm.addEventListener("submit", savePost);
 
   Object.entries(fieldSections).forEach(([name, section]) => setSectionVisible(section, name === kind));
+  refreshIcons();
   client.auth.getSession().then(({ data }) => {
     if (data.session) showStudio(data.session);
     else showLogin();

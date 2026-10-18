@@ -4,13 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex,nofollow" />
-    <meta name="theme-color" content="#171919" />
+    <meta name="theme-color" content="#f6f7f6" />
     <title>内容后台｜robosheep 的小站</title>
-    <link rel="stylesheet" href="./styles.css?v=100" />
+    <link rel="stylesheet" href="./styles.css?v=101" />
     <script src="./site-config.js?v=2" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
     <script src="./content-store.js?v=5" defer></script>
-    <script src="./admin.js?v=6" defer></script>
+    <script src="./admin.js?v=7" defer></script>
   </head>
   <body class="admin-page">
     <main class="admin-shell">
@@ -35,134 +36,261 @@
       </section>
 
       <section class="admin-studio" data-admin-studio hidden>
-        <header class="admin-bar">
-          <div>
-            <p>ROBOSHEEP CONTENT STUDIO</p>
-            <strong data-admin-email></strong>
-          </div>
-          <div class="admin-bar-actions">
-            <a href="./index.html" target="_blank" rel="noopener">查看网站</a>
-            <button type="button" data-sign-out>退出</button>
-          </div>
+        <header class="admin-mobile-bar">
+          <button class="admin-icon-button" type="button" data-sidebar-toggle aria-label="打开导航" aria-expanded="false">
+            <i data-lucide="menu" aria-hidden="true"></i>
+          </button>
+          <strong>robosheep</strong>
+          <span>内容后台</span>
         </header>
 
-        <div class="admin-layout">
-          <aside class="admin-library">
-            <div class="admin-segmented" role="tablist" aria-label="内容类型">
-              <button type="button" role="tab" aria-selected="true" data-kind-tab="moment">动态</button>
-              <button type="button" role="tab" aria-selected="false" data-kind-tab="weekly">周报</button>
-              <button type="button" role="tab" aria-selected="false" data-kind-tab="story">故事</button>
-              <button type="button" role="tab" aria-selected="false" data-kind-tab="photo">照片</button>
-              <button type="button" role="tab" aria-selected="false" data-comments-tab>评论</button>
+        <aside class="admin-sidebar" data-admin-sidebar>
+          <div class="admin-brand">
+            <span class="admin-brand-mark">R</span>
+            <div>
+              <strong>robosheep</strong>
+              <span>内容后台</span>
             </div>
-            <div data-post-controls>
-              <button class="admin-new" type="button" data-new-post>新建动态</button>
-              <div class="admin-post-list" data-post-list aria-live="polite"></div>
-            </div>
-          </aside>
+          </div>
 
-          <section class="admin-editor" data-post-editor>
+          <nav class="admin-nav" aria-label="后台导航">
+            <p>内容</p>
+            <button type="button" aria-current="page" data-kind-tab="moment">
+              <i data-lucide="sparkles" aria-hidden="true"></i>
+              <span>动态</span>
+            </button>
+            <button type="button" aria-current="false" data-kind-tab="weekly">
+              <i data-lucide="notebook-pen" aria-hidden="true"></i>
+              <span>周报</span>
+            </button>
+            <button type="button" aria-current="false" data-kind-tab="story">
+              <i data-lucide="route" aria-hidden="true"></i>
+              <span>故事</span>
+            </button>
+            <button type="button" aria-current="false" data-kind-tab="photo">
+              <i data-lucide="image" aria-hidden="true"></i>
+              <span>照片</span>
+            </button>
+            <p>互动</p>
+            <button type="button" aria-current="false" data-comments-tab>
+              <i data-lucide="messages-square" aria-hidden="true"></i>
+              <span>评论</span>
+            </button>
+          </nav>
+
+          <div class="admin-sidebar-foot">
+            <a href="./index.html" target="_blank" rel="noopener">
+              <i data-lucide="external-link" aria-hidden="true"></i>
+              <span>查看网站</span>
+            </a>
+            <div class="admin-account-summary">
+              <i data-lucide="circle-user-round" aria-hidden="true"></i>
+              <span data-admin-email></span>
+            </div>
+            <button type="button" data-sign-out>
+              <i data-lucide="log-out" aria-hidden="true"></i>
+              <span>退出登录</span>
+            </button>
+          </div>
+        </aside>
+        <button class="admin-sidebar-overlay" type="button" data-sidebar-overlay aria-label="关闭导航" hidden></button>
+
+        <div class="admin-workspace">
+          <section class="admin-content-view" data-post-controls>
+            <header class="admin-page-head">
+              <div>
+                <p>内容管理</p>
+                <h1 data-content-title>动态</h1>
+                <span data-content-description>记录正在发生的日常片段。</span>
+              </div>
+              <button class="admin-primary" type="button" data-new-post>
+                <i data-lucide="plus" aria-hidden="true"></i>
+                <span>新建动态</span>
+              </button>
+            </header>
+            <div class="admin-list-meta">
+              <strong data-content-count>0 条内容</strong>
+              <span data-list-message aria-live="polite"></span>
+            </div>
+            <div class="admin-post-list" data-post-list aria-live="polite"></div>
+          </section>
+
+          <section class="admin-editor" data-post-editor hidden>
             <form data-post-form>
               <input type="hidden" name="id" />
               <div class="admin-editor-head">
-                <div>
+                <div class="admin-editor-heading">
+                  <button class="admin-back-button" type="button" data-back-to-list>
+                    <i data-lucide="arrow-left" aria-hidden="true"></i>
+                    <span>返回列表</span>
+                  </button>
                   <p data-editor-kicker>新建动态</p>
                   <h1 data-editor-title>尚未保存</h1>
                 </div>
                 <div class="admin-editor-actions">
-                  <button type="button" class="admin-danger" data-delete-post hidden>删除</button>
-                  <button type="submit" class="admin-primary">保存</button>
+                  <button type="button" class="admin-danger" data-delete-post hidden>
+                    <i data-lucide="trash-2" aria-hidden="true"></i>
+                    <span>删除</span>
+                  </button>
+                  <button type="submit" class="admin-primary">
+                    <i data-lucide="save" aria-hidden="true"></i>
+                    <span>保存</span>
+                  </button>
                 </div>
               </div>
 
-              <div class="admin-fields">
-                <label>
-                  状态
-                  <select name="status">
-                    <option value="draft">草稿</option>
-                    <option value="published">公开</option>
-                    <option value="hidden">隐藏</option>
-                  </select>
-                </label>
-                <label data-happened-field>
-                  发生时间
-                  <input type="datetime-local" name="happened_at" required />
-                </label>
-              </div>
-
-              <section data-moment-fields>
-                <label class="admin-block-label">
-                  正文
-                  <textarea name="body" rows="9" maxlength="4000" placeholder="写下这个此刻..."></textarea>
-                </label>
-                <label class="admin-upload-label">
-                  添加图片
-                  <input type="file" name="moment_images" accept="image/*" multiple />
-                </label>
-                <div class="admin-image-strip" data-moment-existing-images></div>
+              <section class="admin-form-panel">
+                <header>
+                  <h2>基本信息</h2>
+                  <p>设置内容状态与展示时间。</p>
+                </header>
+                <div class="admin-fields">
+                  <label>
+                    状态
+                    <select name="status">
+                      <option value="draft">草稿</option>
+                      <option value="published">公开</option>
+                      <option value="hidden">隐藏</option>
+                    </select>
+                  </label>
+                  <label data-happened-field>
+                    发生时间
+                    <input type="datetime-local" name="happened_at" required />
+                  </label>
+                </div>
               </section>
 
-              <section data-weekly-fields hidden>
+              <div data-moment-fields>
+                <section class="admin-form-panel">
+                  <header>
+                    <h2>正文</h2>
+                    <p>写下这个此刻想要留下的内容。</p>
+                  </header>
+                  <label class="admin-block-label">
+                    动态内容
+                    <textarea name="body" rows="9" maxlength="4000" placeholder="写下这个此刻..."></textarea>
+                  </label>
+                </section>
+                <section class="admin-form-panel">
+                  <header>
+                    <h2>媒体</h2>
+                    <p>可以一次添加多张图片。</p>
+                  </header>
+                  <label class="admin-upload-label">
+                    添加图片
+                    <input type="file" name="moment_images" accept="image/*" multiple />
+                  </label>
+                  <div class="admin-image-strip" data-moment-existing-images></div>
+                </section>
+              </div>
+
+              <section class="admin-form-panel" data-weekly-fields hidden>
+                <header>
+                  <h2>正文与段落</h2>
+                  <p>按段落整理这一周，每段都可以添加图片。</p>
+                </header>
                 <label class="admin-block-label">
                   周报标题
                   <input type="text" name="title" maxlength="100" placeholder="这一周的标题" />
                 </label>
                 <div class="admin-sections" data-weekly-sections></div>
-                <button type="button" class="admin-add-section" data-add-weekly-section>＋ 添加段落</button>
+                <button type="button" class="admin-add-section" data-add-weekly-section>
+                  <i data-lucide="plus" aria-hidden="true"></i>
+                  <span>添加段落</span>
+                </button>
               </section>
 
-              <section data-story-fields hidden>
-                <label class="admin-block-label">
-                  故事标题
-                  <input type="text" name="story_title" maxlength="100" placeholder="这篇故事叫什么" />
-                </label>
-                <label class="admin-block-label">
-                  列表简介
-                  <textarea name="story_summary" rows="3" maxlength="240" placeholder="在故事列表中显示的一句话"></textarea>
-                </label>
-                <label class="admin-upload-label">
-                  选择封面
-                  <input type="file" name="story_cover" accept="image/*" />
-                </label>
-                <div class="admin-image-strip admin-single-image" data-story-existing-cover></div>
-                <div class="admin-section-heading">
-                  <div><strong>时间节点</strong><span>保存时按年月自动排序</span></div>
-                </div>
-                <div class="admin-sections" data-story-sections></div>
-                <button type="button" class="admin-add-section" data-add-story-section>＋ 添加时间节点</button>
-              </section>
+              <div data-story-fields hidden>
+                <section class="admin-form-panel">
+                  <header>
+                    <h2>故事信息</h2>
+                    <p>标题和简介会出现在故事列表。</p>
+                  </header>
+                  <label class="admin-block-label">
+                    故事标题
+                    <input type="text" name="story_title" maxlength="100" placeholder="这篇故事叫什么" />
+                  </label>
+                  <label class="admin-block-label">
+                    列表简介
+                    <textarea name="story_summary" rows="3" maxlength="240" placeholder="在故事列表中显示的一句话"></textarea>
+                  </label>
+                </section>
+                <section class="admin-form-panel">
+                  <header>
+                    <h2>封面</h2>
+                    <p>每篇故事使用一张列表封面。</p>
+                  </header>
+                  <label class="admin-upload-label">
+                    选择封面
+                    <input type="file" name="story_cover" accept="image/*" />
+                  </label>
+                  <div class="admin-image-strip admin-single-image" data-story-existing-cover></div>
+                </section>
+                <section class="admin-form-panel">
+                  <header class="admin-section-heading">
+                    <div>
+                      <h2>时间节点</h2>
+                      <span>保存时按年月自动排序</span>
+                    </div>
+                    <p>每个节点对应故事中的一个阶段。</p>
+                  </header>
+                  <div class="admin-sections" data-story-sections></div>
+                  <button type="button" class="admin-add-section" data-add-story-section>
+                    <i data-lucide="plus" aria-hidden="true"></i>
+                    <span>添加时间节点</span>
+                  </button>
+                </section>
+              </div>
 
-              <section data-photo-fields hidden>
-                <label class="admin-block-label">
-                  拍摄日期
-                  <input type="date" name="photo_date" />
-                </label>
-                <label class="admin-block-label">
-                  照片标题
-                  <input type="text" name="photo_title" maxlength="100" placeholder="给这张照片一个标题" />
-                </label>
-                <label class="admin-block-label">
-                  说明
-                  <textarea name="photo_body" rows="5" maxlength="1000" placeholder="记录照片背后的事情"></textarea>
-                </label>
-                <label class="admin-upload-label">
-                  选择照片
-                  <input type="file" name="photo_image" accept="image/*" />
-                </label>
-                <div class="admin-image-strip admin-single-image" data-photo-existing-image></div>
-              </section>
+              <div data-photo-fields hidden>
+                <section class="admin-form-panel">
+                  <header>
+                    <h2>照片信息</h2>
+                    <p>记录拍摄日期和照片背后的事情。</p>
+                  </header>
+                  <div class="admin-fields admin-photo-fields">
+                    <label>
+                      拍摄日期
+                      <input type="date" name="photo_date" />
+                    </label>
+                    <label>
+                      照片标题
+                      <input type="text" name="photo_title" maxlength="100" placeholder="给这张照片一个标题" />
+                    </label>
+                  </div>
+                  <label class="admin-block-label">
+                    说明
+                    <textarea name="photo_body" rows="5" maxlength="1000" placeholder="记录照片背后的事情"></textarea>
+                  </label>
+                </section>
+                <section class="admin-form-panel">
+                  <header>
+                    <h2>媒体</h2>
+                    <p>每条照片记录使用一张图片。</p>
+                  </header>
+                  <label class="admin-upload-label">
+                    选择照片
+                    <input type="file" name="photo_image" accept="image/*" />
+                  </label>
+                  <div class="admin-image-strip admin-single-image" data-photo-existing-image></div>
+                </section>
+              </div>
 
               <p class="admin-save-message" data-save-message aria-live="polite"></p>
             </form>
           </section>
 
           <section class="admin-comments" data-comments-manager hidden>
-            <header class="admin-editor-head">
+            <header class="admin-page-head">
               <div>
-                <p>公开留言</p>
-                <h1>评论管理</h1>
+                <p>互动管理</p>
+                <h1>评论</h1>
+                <span>查看并管理网站中的公开留言。</span>
               </div>
-              <button type="button" data-refresh-comments>刷新</button>
+              <button type="button" data-refresh-comments>
+                <i data-lucide="refresh-cw" aria-hidden="true"></i>
+                <span>刷新</span>
+              </button>
             </header>
             <p class="admin-comments-message" data-comments-message aria-live="polite"></p>
             <div class="admin-comments-list" data-admin-comments-list></div>
@@ -175,7 +303,9 @@
       <article class="admin-section-editor" data-section-editor>
         <header>
           <span data-section-number>01</span>
-          <button type="button" data-remove-section title="删除这一段" aria-label="删除这一段">×</button>
+          <button type="button" data-remove-section aria-label="删除这一段">
+            <i data-lucide="x" aria-hidden="true"></i>
+          </button>
         </header>
         <label>
           小标题
@@ -197,7 +327,9 @@
       <article class="admin-section-editor admin-story-node" data-story-node>
         <header>
           <span data-story-node-number>时间节点</span>
-          <button type="button" data-remove-story-node title="删除这个节点" aria-label="删除这个节点">×</button>
+          <button type="button" data-remove-story-node aria-label="删除这个节点">
+            <i data-lucide="x" aria-hidden="true"></i>
+          </button>
         </header>
         <div class="admin-fields admin-node-fields">
           <label>
