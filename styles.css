@@ -427,6 +427,7 @@ button:focus-visible {
 
 .passage > h2 {
   margin: 0 0 28px;
+  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   font-size: clamp(32px, 5vw, 52px);
 }
 
