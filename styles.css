@@ -1474,7 +1474,7 @@ body.is-route-leaving > .topbar {
 
 .hub-shell {
   position: relative;
-  width: min(100%, 1280px);
+  width: min(100%, 1120px);
   min-height: calc(100svh - 112px);
   margin: 0 auto;
   display: grid;
@@ -3806,7 +3806,7 @@ body.is-route-leaving > .topbar {
 .immersive-page > main {
   position: relative;
   z-index: 1;
-  width: min(calc(100% - 36px), 840px) !important;
+  width: min(calc(100% - 36px), 720px) !important;
   min-height: calc(100svh - 108px);
   margin: 72px auto 36px !important;
   padding: 48px 44px 68px !important;
@@ -3983,7 +3983,7 @@ body.is-route-leaving > .topbar {
 .immersive-page > .site-foot {
   position: relative;
   z-index: 1;
-  width: min(calc(100% - 36px), 840px);
+  width: min(calc(100% - 36px), 720px);
   margin: 0 auto 36px;
   padding: 22px 42px;
   border: 1px solid rgba(225, 235, 255, 0.12);
