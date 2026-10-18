@@ -5,6 +5,14 @@ create table if not exists public.site_admins (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.profiles (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  nickname text not null check (char_length(btrim(nickname)) between 1 and 20),
+  avatar_url text,
+  provider text not null default 'email',
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.posts (
   id uuid primary key default gen_random_uuid(),
   kind text not null check (kind in ('moment', 'weekly')),
@@ -32,9 +40,22 @@ create table if not exists public.comments (
   created_at timestamptz not null default now()
 );
 
+alter table public.comments
+  add column if not exists author_id uuid references auth.users(id) on delete set null;
+
 create or replace view public.public_comments as
-select id, target_kind, target_key, nickname, body, parent_id, created_at
-from public.comments;
+select
+  comments.id,
+  comments.target_kind,
+  comments.target_key,
+  coalesce(profiles.nickname, comments.nickname) as nickname,
+  comments.body,
+  comments.parent_id,
+  comments.created_at,
+  profiles.avatar_url,
+  (comments.author_id is not null) as is_registered
+from public.comments
+left join public.profiles on profiles.user_id = comments.author_id;
 
 create index if not exists posts_public_timeline_idx
   on public.posts (kind, status, happened_at desc);
@@ -45,6 +66,67 @@ create index if not exists comments_target_timeline_idx
 create index if not exists comments_parent_idx
   on public.comments (parent_id)
   where parent_id is not null;
+
+create index if not exists comments_author_idx
+  on public.comments (author_id)
+  where author_id is not null;
+
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  profile_nickname text;
+begin
+  profile_nickname := coalesce(
+    nullif(btrim(new.raw_user_meta_data ->> 'nickname'), ''),
+    nullif(btrim(new.raw_user_meta_data ->> 'user_name'), ''),
+    nullif(btrim(new.raw_user_meta_data ->> 'preferred_username'), ''),
+    nullif(btrim(new.raw_user_meta_data ->> 'full_name'), ''),
+    nullif(btrim(new.raw_user_meta_data ->> 'name'), ''),
+    nullif(split_part(new.email, '@', 1), ''),
+    '访客'
+  );
+
+  insert into public.profiles (user_id, nickname, avatar_url, provider)
+  values (
+    new.id,
+    left(profile_nickname, 20),
+    nullif(new.raw_user_meta_data ->> 'avatar_url', ''),
+    coalesce(new.raw_app_meta_data ->> 'provider', 'email')
+  )
+  on conflict (user_id) do update set
+    nickname = excluded.nickname,
+    avatar_url = coalesce(excluded.avatar_url, public.profiles.avatar_url),
+    provider = excluded.provider;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+after insert or update of raw_user_meta_data, raw_app_meta_data on auth.users
+for each row execute function public.handle_new_user();
+
+insert into public.profiles (user_id, nickname, avatar_url, provider)
+select
+  users.id,
+  left(coalesce(
+    nullif(btrim(users.raw_user_meta_data ->> 'nickname'), ''),
+    nullif(btrim(users.raw_user_meta_data ->> 'user_name'), ''),
+    nullif(btrim(users.raw_user_meta_data ->> 'preferred_username'), ''),
+    nullif(btrim(users.raw_user_meta_data ->> 'full_name'), ''),
+    nullif(btrim(users.raw_user_meta_data ->> 'name'), ''),
+    nullif(split_part(users.email, '@', 1), ''),
+    '访客'
+  ), 20),
+  nullif(users.raw_user_meta_data ->> 'avatar_url', ''),
+  coalesce(users.raw_app_meta_data ->> 'provider', 'email')
+from auth.users as users
+on conflict (user_id) do nothing;
 
 create or replace function public.touch_updated_at()
 returns trigger
@@ -70,11 +152,21 @@ set search_path = public
 as $$
 declare
   parent_comment public.comments%rowtype;
+  account_nickname text;
 begin
   new.id = gen_random_uuid();
   new.created_at = now();
+  new.author_id = auth.uid();
   new.nickname = btrim(new.nickname);
   new.body = btrim(new.body);
+
+  if new.author_id is not null then
+    select profiles.nickname into account_nickname
+    from public.profiles
+    where profiles.user_id = new.author_id;
+    new.nickname = coalesce(account_nickname, new.nickname);
+    new.visitor_token = gen_random_uuid();
+  end if;
 
   if char_length(new.nickname) not between 1 and 20 then
     raise exception '昵称需要填写 1 至 20 个字符';
@@ -83,12 +175,19 @@ begin
     raise exception '评论需要填写 1 至 500 个字符';
   end if;
 
-  if exists (
-    select 1
-    from public.comments
-    where visitor_token = new.visitor_token
-      and created_at > now() - interval '15 seconds'
-  ) then
+  perform 1
+  from public.comments as recent_comment
+  where recent_comment.created_at > now() - interval '15 seconds'
+    and (
+      recent_comment.visitor_token = new.visitor_token
+      or (
+        new.author_id is not null
+        and recent_comment.author_id = new.author_id
+      )
+    )
+  limit 1;
+
+  if found then
     raise exception '发表得太快了，请稍后再试';
   end if;
 
@@ -157,9 +256,91 @@ $$;
 revoke all on function public.delete_comment(uuid) from public;
 grant execute on function public.delete_comment(uuid) to authenticated;
 
+create or replace function public.owned_comment_ids(requester_token uuid)
+returns table(comment_id uuid)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select id
+  from public.comments
+  where visitor_token = requester_token
+    or (auth.uid() is not null and author_id = auth.uid());
+$$;
+
+revoke all on function public.owned_comment_ids(uuid) from public;
+grant execute on function public.owned_comment_ids(uuid) to anon, authenticated;
+
+create or replace function public.delete_own_comment(
+  requested_comment_id uuid,
+  requester_token uuid
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  deleted_rows integer;
+begin
+  delete from public.comments
+  where id = requested_comment_id
+    and (
+      visitor_token = requester_token
+      or (auth.uid() is not null and author_id = auth.uid())
+    );
+
+  get diagnostics deleted_rows = row_count;
+  if deleted_rows = 0 then
+    raise exception 'This comment does not belong to this browser'
+      using errcode = '42501';
+  end if;
+end;
+$$;
+
+revoke all on function public.delete_own_comment(uuid, uuid) from public;
+grant execute on function public.delete_own_comment(uuid, uuid) to anon, authenticated;
+
+create or replace function public.claim_visitor_comments(requester_token uuid)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  claimed_rows integer;
+begin
+  if auth.uid() is null then
+    raise exception 'You must be signed in to claim comments'
+      using errcode = '42501';
+  end if;
+
+  update public.comments
+  set
+    author_id = auth.uid(),
+    visitor_token = gen_random_uuid()
+  where visitor_token = requester_token
+    and author_id is null;
+
+  get diagnostics claimed_rows = row_count;
+  return claimed_rows;
+end;
+$$;
+
+revoke all on function public.claim_visitor_comments(uuid) from public;
+grant execute on function public.claim_visitor_comments(uuid) to authenticated;
+
 alter table public.site_admins enable row level security;
+alter table public.profiles enable row level security;
 alter table public.posts enable row level security;
 alter table public.comments enable row level security;
+
+drop policy if exists "Users read own profile" on public.profiles;
+create policy "Users read own profile"
+on public.profiles for select
+to authenticated
+using (user_id = auth.uid());
 
 drop policy if exists "Public reads published posts" on public.posts;
 create policy "Public reads published posts"
@@ -201,6 +382,7 @@ with check (
   and target_key ~ '^[a-z0-9][a-z0-9._-]{0,79}$'
   and char_length(btrim(nickname)) between 1 and 20
   and char_length(btrim(body)) between 1 and 500
+  and author_id is not distinct from auth.uid()
 );
 
 drop policy if exists "Admins delete comments" on public.comments;
@@ -213,6 +395,8 @@ revoke all on table public.comments from anon, authenticated;
 grant insert (target_kind, target_key, nickname, body, parent_id, visitor_token)
   on table public.comments to anon, authenticated;
 grant delete on table public.comments to authenticated;
+revoke all on table public.profiles from anon, authenticated;
+grant select on table public.profiles to authenticated;
 revoke all on table public.public_comments from anon, authenticated;
 grant select on table public.public_comments to anon, authenticated;
 

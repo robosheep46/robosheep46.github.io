@@ -146,7 +146,7 @@
     if (!client) throw new Error("评论服务尚未配置");
     const { data, error } = await client
       .from("public_comments")
-      .select("id,target_kind,target_key,nickname,body,parent_id,created_at")
+      .select("id,target_kind,target_key,nickname,body,parent_id,created_at,avatar_url,is_registered")
       .eq("target_kind", targetKind)
       .eq("target_key", targetKey)
       .order("created_at", { ascending: true });
@@ -160,6 +160,57 @@
       .from("comments")
       .insert(comment);
     if (error) throw error;
+  }
+
+  async function listOwnedCommentIds(visitorToken) {
+    if (!client) throw new Error("评论服务尚未配置");
+    const { data, error } = await client.rpc("owned_comment_ids", {
+      requester_token: visitorToken,
+    });
+    if (error) throw error;
+    return (data || []).map((row) => row.comment_id);
+  }
+
+  async function deleteOwnComment(commentId, visitorToken) {
+    if (!client) throw new Error("评论服务尚未配置");
+    const { error } = await client.rpc("delete_own_comment", {
+      requested_comment_id: commentId,
+      requester_token: visitorToken,
+    });
+    if (error) throw error;
+  }
+
+  async function getAuthState() {
+    if (!client) return { session: null, user: null, profile: null };
+    const { data, error } = await client.auth.getSession();
+    if (error) throw error;
+    const session = data.session;
+    if (!session?.user) return { session: null, user: null, profile: null };
+    const { data: profile, error: profileError } = await client
+      .from("profiles")
+      .select("user_id,nickname,avatar_url,provider")
+      .eq("user_id", session.user.id)
+      .maybeSingle();
+    if (profileError) console.warn("Unable to read public profile.", profileError.message);
+    const fallbackProfile = {
+      user_id: session.user.id,
+      nickname: session.user.user_metadata?.nickname
+        || session.user.user_metadata?.user_name
+        || session.user.email?.split("@")[0]
+        || "访客",
+      avatar_url: session.user.user_metadata?.avatar_url || "",
+      provider: session.user.app_metadata?.provider || "email",
+    };
+    return { session, user: session.user, profile: profile || fallbackProfile };
+  }
+
+  async function claimVisitorComments(visitorToken) {
+    if (!client) throw new Error("评论服务尚未配置");
+    const { data, error } = await client.rpc("claim_visitor_comments", {
+      requester_token: visitorToken,
+    });
+    if (error) throw error;
+    return data || 0;
   }
 
   async function hydrateHome() {
@@ -215,6 +266,10 @@
     getPublished,
     listComments,
     createComment,
+    listOwnedCommentIds,
+    deleteOwnComment,
+    getAuthState,
+    claimVisitorComments,
   });
 
   if (document.readyState === "loading") {

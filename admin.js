@@ -429,11 +429,18 @@
   };
 
   const showStudio = async (session) => {
+    const { data: isAdmin, error } = await client.rpc("is_site_admin");
+    if (error || !isAdmin) {
+      showLogin();
+      setMessage(loginMessage, "这个账号没有内容后台权限", "error");
+      return false;
+    }
     loginPanel.hidden = true;
     studio.hidden = false;
     document.querySelector("[data-admin-email]").textContent = session.user.email;
     await loadPosts();
     resetEditor();
+    return true;
   };
 
   const showLogin = () => {

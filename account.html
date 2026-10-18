@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="登录或注册 robosheep 的小站。" />
+    <meta name="theme-color" content="#07101c" />
+    <title>账号｜robosheep 的小站</title>
+    <link rel="stylesheet" href="./styles.css?v=93" />
+    <script src="./site-config.js?v=2" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="./content-store.js?v=4" defer></script>
+    <script src="./account.js?v=2" defer></script>
+  </head>
+  <body class="account-page">
+    <a class="skip-link" href="#account">跳到账号区域</a>
+    <header class="topbar topbar-paper">
+      <a class="brand" href="./index.html">robosheep 的小站</a>
+      <a class="top-link" data-account-return href="./index.html#home-hub">返回</a>
+    </header>
+
+    <main class="account-shell" id="account">
+      <section class="account-panel" data-auth-panel>
+        <header class="account-heading">
+          <p>ROBOSHEEP ACCOUNT</p>
+          <h1 data-auth-title>欢迎回来</h1>
+        </header>
+
+        <div class="account-tabs" role="tablist" aria-label="账号操作" data-auth-tabs>
+          <button type="button" role="tab" aria-selected="true" data-auth-mode="login">登录</button>
+          <button type="button" role="tab" aria-selected="false" data-auth-mode="register">注册</button>
+        </div>
+
+        <form class="account-form" data-login-form>
+          <label>
+            <span>邮箱</span>
+            <input type="email" name="email" autocomplete="username" required />
+          </label>
+          <label>
+            <span>密码</span>
+            <input type="password" name="password" autocomplete="current-password" minlength="6" required />
+          </label>
+          <div class="account-form-actions">
+            <button class="account-text-button" type="button" data-forgot-password>忘记密码</button>
+            <button class="account-primary" type="submit">登录</button>
+          </div>
+        </form>
+
+        <form class="account-form" data-register-form hidden>
+          <label>
+            <span>昵称</span>
+            <input type="text" name="nickname" autocomplete="nickname" maxlength="20" required />
+          </label>
+          <label>
+            <span>邮箱</span>
+            <input type="email" name="email" autocomplete="email" required />
+          </label>
+          <label>
+            <span>密码</span>
+            <input type="password" name="password" autocomplete="new-password" minlength="6" required />
+          </label>
+          <div class="account-form-actions account-form-actions-end">
+            <button class="account-primary" type="submit">创建账号</button>
+          </div>
+        </form>
+
+        <form class="account-form" data-recovery-form hidden>
+          <label>
+            <span>注册邮箱</span>
+            <input type="email" name="email" autocomplete="email" required />
+          </label>
+          <div class="account-form-actions">
+            <button class="account-text-button" type="button" data-back-login>返回登录</button>
+            <button class="account-primary" type="submit">发送重置邮件</button>
+          </div>
+        </form>
+
+        <form class="account-form" data-reset-form hidden>
+          <label>
+            <span>新密码</span>
+            <input type="password" name="password" autocomplete="new-password" minlength="6" required />
+          </label>
+          <label>
+            <span>确认新密码</span>
+            <input type="password" name="confirm_password" autocomplete="new-password" minlength="6" required />
+          </label>
+          <div class="account-form-actions account-form-actions-end">
+            <button class="account-primary" type="submit">更新密码</button>
+          </div>
+        </form>
+
+        <div class="account-oauth" data-auth-oauth>
+          <span>或</span>
+          <button type="button" data-github-login>使用 GitHub 登录</button>
+        </div>
+
+        <p class="account-message" data-auth-message aria-live="polite"></p>
+      </section>
+
+      <section class="account-panel account-session" data-session-panel hidden>
+        <p class="account-session-kicker">SIGNED IN</p>
+        <div class="account-identity">
+          <span class="account-avatar" data-account-avatar aria-hidden="true"></span>
+          <div>
+            <h1 data-account-nickname></h1>
+            <p data-account-email></p>
+          </div>
+        </div>
+        <div class="account-session-actions">
+          <a class="account-primary" data-session-return href="./index.html#home-hub">返回网站</a>
+          <button class="account-text-button" type="button" data-account-signout>退出登录</button>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
