@@ -2457,6 +2457,14 @@ body.is-route-leaving > .topbar {
   letter-spacing: 0;
 }
 
+.about-lead h1,
+.interests-head h1,
+.weekly-head h1,
+.story-axis #p1 > h2 {
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1.12;
+}
+
 .about-statement {
   grid-column: 1;
   max-width: 43em;
@@ -2723,6 +2731,13 @@ body.is-route-leaving > .topbar {
   .moments-head h1,
   .weekly-head h1 {
     font-size: 42px;
+  }
+
+  .about-lead h1,
+  .interests-head h1,
+  .weekly-head h1,
+  .story-axis #p1 > h2 {
+    font-size: clamp(28px, 4vw, 40px);
   }
 
   .magazine-piece {
@@ -3454,6 +3469,14 @@ body.is-route-leaving > .topbar {
 }
 
 .weekly-reader .comments-section .comment-bubble > p {
+  font-size: 14px;
+}
+
+.robomaster-page .comments-head h2 {
+  font-size: 20px;
+}
+
+.robomaster-page .comments-section .comment-bubble > p {
   font-size: 14px;
 }
 
@@ -4950,6 +4973,13 @@ body.is-route-leaving > .topbar {
   .immersive-page .moments-head h1,
   .immersive-page .weekly-head h1 {
     font-size: 32px;
+  }
+
+  .immersive-page .about-lead h1,
+  .immersive-page .interests-head h1,
+  .immersive-page .weekly-head h1,
+  .immersive-page .story-axis #p1 > h2 {
+    font-size: clamp(28px, 4vw, 40px);
   }
 
   .immersive-page .interest-band {
