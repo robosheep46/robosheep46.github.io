@@ -1763,24 +1763,20 @@ body.is-route-leaving > .topbar {
 .hub-card h2 {
   margin: 0;
   font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-  font-size: 25px;
+  color: #f2d293;
+  font-size: 10px;
   font-weight: 500;
   line-height: 1.2;
-  letter-spacing: 0;
+  letter-spacing: 0.1em;
   overflow-wrap: anywhere;
 }
 
-.hub-card-copy > p:last-child,
-.hub-card-detail {
+.hub-card-copy > p:last-child {
   max-width: 30em;
   margin: 9px 0 0;
   color: rgba(244, 239, 230, 0.76);
   font-size: 13px;
   line-height: 1.55;
-}
-
-.hub-card-detail + .hub-card-detail {
-  margin-top: 2px;
 }
 
 .hub-arrow {
@@ -6242,10 +6238,6 @@ body.is-route-leaving > .topbar {
   padding-top: 22px;
   pointer-events: none;
   background: linear-gradient(to bottom, transparent, rgba(7, 22, 43, 0.92) 48%);
-}
-
-.hub-growth h2 {
-  color: #f7f4ed;
 }
 
 .hub-growth-mini {
