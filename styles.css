@@ -1711,16 +1711,32 @@ body.is-route-leaving > .topbar {
   box-shadow: 0 22px 54px rgba(1, 7, 18, 0.36);
 }
 
-.hub-card > img {
+.hub-card > img,
+.hub-card-media {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
+}
+
+.hub-card-media,
+.hub-card-media img {
+  display: block;
+}
+
+.hub-card-media img {
+  width: 100%;
+  height: 100%;
+}
+
+.hub-card > img,
+.hub-card-media img {
   object-fit: cover;
   transition: transform 700ms ease, filter 400ms ease;
 }
 
-.hub-card:hover > img {
+.hub-card:hover > img,
+.hub-card:hover .hub-card-media img {
   transform: scale(1.035);
 }
 
@@ -1805,7 +1821,7 @@ body.is-route-leaving > .topbar {
   grid-row: 1 / 3;
 }
 
-.hub-archive > img {
+.hub-archive .hub-card-media img {
   object-position: center 52%;
 }
 
@@ -1833,7 +1849,7 @@ body.is-route-leaving > .topbar {
   grid-row: 3 / 5;
 }
 
-.hub-weekly > img {
+.hub-weekly .hub-card-media img {
   filter: saturate(0.72) brightness(0.78);
 }
 
@@ -4820,7 +4836,7 @@ body.is-route-leaving > .topbar {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(4, 12, 29, 0.38);
+  background: rgba(4, 12, 29, 0.28);
 }
 
 .inner-backdrop span {
@@ -4845,12 +4861,12 @@ body.is-route-leaving > .topbar {
 }
 
 .inner-backdrop span:nth-child(3) {
-  background-image: url("./media/archive-cover.jpg?v=1");
+  background-image: url("./media/story-ferris-16x9.png");
   animation-delay: 14.4s;
 }
 
 .inner-backdrop span:nth-child(4) {
-  background-image: url("./media/weekly-cover.jpg?v=1");
+  background-image: url("./media/weekly-lighthouse-16x9.png");
   animation-delay: 22.4s;
 }
 
@@ -5152,6 +5168,7 @@ body.is-route-leaving > .topbar {
   .immersive-page > main::before {
     height: 156px;
     margin: -34px -20px 32px;
+    background-image: linear-gradient(180deg, rgba(4, 13, 29, 0.02), rgba(4, 13, 29, 0.38)), var(--inner-banner-mobile, var(--inner-banner));
   }
 
   .immersive-page .about-lead h1,

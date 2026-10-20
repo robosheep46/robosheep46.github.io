@@ -22,7 +22,7 @@
       link.className = "story-list-item";
       link.href = storyHref(post);
       const cover = document.createElement("img");
-      cover.src = imageUrl(post.images?.[0]) || "../media/archive-cover.jpg?v=1";
+      cover.src = imageUrl(post.images?.[0]) || "../media/story-ferris-3x2.png";
       cover.alt = "";
       cover.loading = "lazy";
       const shade = document.createElement("span");

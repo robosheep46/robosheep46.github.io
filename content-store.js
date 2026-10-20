@@ -100,7 +100,7 @@
       status: "published",
       sort_order: 0,
       body: "从想证明自己，到第一次真正看见代码动起来。",
-      images: [{ url: "../media/archive-cover.jpg?v=1", path: "" }],
+      images: [{ url: "../media/story-ferris-3x2.png", path: "" }],
       sections: [
         {
           key: "2023-09",

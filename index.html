@@ -6,10 +6,10 @@
     <meta name="description" content="robosheep 的个人网站，记录成长、周报、生活、兴趣与当下。" />
     <meta name="theme-color" content="#07101c" />
     <title>robosheep 的小站</title>
-    <link rel="stylesheet" href="./styles.css?v=108" />
+    <link rel="stylesheet" href="./styles.css?v=109" />
     <script src="./site-config.js?v=2" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <script src="./content-store.js?v=6" defer></script>
+    <script src="./content-store.js?v=7" defer></script>
     <script src="./growth.js?v=7" defer></script>
     <script src="./script.js?v=38" defer></script>
   </head>
@@ -70,7 +70,10 @@
             </a>
 
             <a class="hub-card hub-archive" href="./stories/stories.html">
-              <img src="./media/archive-cover.jpg?v=1" alt="RoboMaster 机器人赛场" />
+              <picture class="hub-card-media">
+                <source media="(max-width: 760px)" srcset="./media/story-ferris-4x5.png" />
+                <img src="./media/story-ferris-3x2.png" alt="星空下的摩天轮" />
+              </picture>
               <span class="hub-card-shade" aria-hidden="true"></span>
               <span class="hub-index">GROWTH ARCHIVE</span>
               <div class="hub-card-copy">
@@ -92,7 +95,10 @@
             </a>
 
             <a class="hub-card hub-weekly" href="./stories/weekly.html">
-              <img src="./media/weekly-cover.jpg?v=1" alt="周报封面" />
+              <picture class="hub-card-media">
+                <source media="(max-width: 760px)" srcset="./media/weekly-lighthouse-4x5.png" />
+                <img src="./media/weekly-lighthouse-3x2.png" alt="星空下的灯塔" />
+              </picture>
               <span class="hub-card-shade" aria-hidden="true"></span>
               <span class="hub-index">WEEKLY · <time data-latest-weekly-date>2026.10.10</time></span>
               <div class="hub-card-copy">
