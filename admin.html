@@ -6,12 +6,15 @@
     <meta name="robots" content="noindex,nofollow" />
     <meta name="theme-color" content="#f6f7f6" />
     <title>内容后台｜robosheep 的小站</title>
-    <link rel="stylesheet" href="./styles.css?v=101" />
+    <link rel="stylesheet" href="./styles.css?v=103" />
     <script src="./site-config.js?v=2" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
-    <script src="./content-store.js?v=5" defer></script>
-    <script src="./admin.js?v=7" defer></script>
+    <script src="./content-store.js?v=6" defer></script>
+    <script src="./growth-cards.js?v=2" defer></script>
+    <script src="./growth-team-cards.js?v=2" defer></script>
+    <script src="./admin.js?v=8" defer></script>
+    <script src="./admin-growth.js?v=2" defer></script>
   </head>
   <body class="admin-page">
     <main class="admin-shell">
@@ -55,9 +58,9 @@
 
           <nav class="admin-nav" aria-label="后台导航">
             <p>内容</p>
-            <button type="button" aria-current="page" data-kind-tab="moment">
+            <button type="button" aria-current="page" data-growth-tab>
               <i data-lucide="sparkles" aria-hidden="true"></i>
-              <span>动态</span>
+              <span>成长墙</span>
             </button>
             <button type="button" aria-current="false" data-kind-tab="weekly">
               <i data-lucide="notebook-pen" aria-hidden="true"></i>
@@ -96,16 +99,86 @@
         <button class="admin-sidebar-overlay" type="button" data-sidebar-overlay aria-label="关闭导航" hidden></button>
 
         <div class="admin-workspace">
+          <section class="admin-growth" data-growth-manager hidden>
+            <header class="admin-page-head">
+              <div>
+                <p>成长记录</p>
+                <h1>成长墙</h1>
+                <span>点亮今天或昨天，并确认五联卡素材已经同步。</span>
+              </div>
+              <a class="admin-primary" href="./stories/growth.html" target="_blank" rel="noopener">
+                <i data-lucide="external-link" aria-hidden="true"></i>
+                <span>查看成长墙</span>
+              </a>
+            </header>
+
+            <div class="admin-growth-grid">
+              <form class="admin-form-panel admin-growth-day" data-growth-day-form>
+                <header>
+                  <div>
+                    <h2>点亮一天</h2>
+                    <p>每天只生成一个格子；重新保存不会更换颜色。</p>
+                  </div>
+                  <div class="admin-date-switch" role="group" aria-label="选择记录日期">
+                    <button type="button" aria-pressed="true" data-growth-date="today">今天</button>
+                    <button type="button" aria-pressed="false" data-growth-date="yesterday">昨天</button>
+                  </div>
+                </header>
+                <p class="admin-growth-date-label" data-growth-date-label></p>
+                <label class="admin-check-card">
+                  <input type="checkbox" name="did_meaningful" />
+                  <span><strong>生活有意义</strong><small>做了工作以外，自己觉得有意义的事情</small></span>
+                </label>
+                <label class="admin-check-card">
+                  <input type="checkbox" name="made_breakthrough" />
+                  <span><strong>工作有突破</strong><small>工作上出现了值得记住的突破性进展</small></span>
+                </label>
+                <label class="admin-block-label">
+                  私密备注
+                  <textarea name="private_note" rows="5" maxlength="1000" placeholder="只在后台显示，不会公开"></textarea>
+                </label>
+                <div class="admin-growth-day-actions">
+                  <span data-growth-color-preview>尚未点亮</span>
+                  <button class="admin-primary" type="submit"><i data-lucide="save" aria-hidden="true"></i><span>保存记录</span></button>
+                </div>
+                <p class="admin-save-message" data-growth-day-message aria-live="polite"></p>
+              </form>
+
+              <section class="admin-form-panel admin-growth-summary">
+                <header><div><h2>奖励进度</h2><p>每五个同色格子获得一份卡片保存资格。</p></div></header>
+                <div data-admin-reward-status></div>
+              </section>
+            </div>
+
+            <section class="admin-form-panel admin-card-manager">
+              <header class="admin-section-heading">
+                <div><h2>五联卡池</h2><span data-admin-card-count>0 / 40 已同步</span></div>
+                <p>8 个主题，每组 5 张；集齐同组卡片后，访客可以查看完整画面。</p>
+              </header>
+              <div class="admin-card-toolbar">
+                <input type="search" data-admin-card-search placeholder="搜索主题或人物" aria-label="搜索五联卡" />
+                <button type="button" class="admin-primary" data-sync-card-pool><i data-lucide="refresh-cw" aria-hidden="true"></i><span>同步 40 张五联卡</span></button>
+              </div>
+              <p class="admin-save-message" data-admin-card-message aria-live="polite"></p>
+              <div class="admin-card-list" data-admin-card-list></div>
+            </section>
+
+            <section class="admin-form-panel admin-rm-pool-note">
+              <header><div><h2>RoboMaster 卡池</h2><p>这是独立卡池，本轮不加入任何未经确认的口号或图片。</p></div></header>
+              <span>等待你提供卡片素材后再继续。</span>
+            </section>
+          </section>
+
           <section class="admin-content-view" data-post-controls>
             <header class="admin-page-head">
               <div>
                 <p>内容管理</p>
-                <h1 data-content-title>动态</h1>
-                <span data-content-description>记录正在发生的日常片段。</span>
+                <h1 data-content-title>周报</h1>
+                <span data-content-description>整理每一周的学习、生活与思考。</span>
               </div>
               <button class="admin-primary" type="button" data-new-post>
                 <i data-lucide="plus" aria-hidden="true"></i>
-                <span>新建动态</span>
+                <span>新建周报</span>
               </button>
             </header>
             <div class="admin-list-meta">
@@ -124,7 +197,7 @@
                     <i data-lucide="arrow-left" aria-hidden="true"></i>
                     <span>返回列表</span>
                   </button>
-                  <p data-editor-kicker>新建动态</p>
+                  <p data-editor-kicker>新建周报</p>
                   <h1 data-editor-title>尚未保存</h1>
                 </div>
                 <div class="admin-editor-actions">
@@ -159,30 +232,6 @@
                   </label>
                 </div>
               </section>
-
-              <div data-moment-fields>
-                <section class="admin-form-panel">
-                  <header>
-                    <h2>正文</h2>
-                    <p>写下这个此刻想要留下的内容。</p>
-                  </header>
-                  <label class="admin-block-label">
-                    动态内容
-                    <textarea name="body" rows="9" maxlength="4000" placeholder="写下这个此刻..."></textarea>
-                  </label>
-                </section>
-                <section class="admin-form-panel">
-                  <header>
-                    <h2>媒体</h2>
-                    <p>可以一次添加多张图片。</p>
-                  </header>
-                  <label class="admin-upload-label">
-                    添加图片
-                    <input type="file" name="moment_images" accept="image/*" multiple />
-                  </label>
-                  <div class="admin-image-strip" data-moment-existing-images></div>
-                </section>
-              </div>
 
               <section class="admin-form-panel" data-weekly-fields hidden>
                 <header>

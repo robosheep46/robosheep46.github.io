@@ -15,9 +15,11 @@
   const happenedField = document.querySelector("[data-happened-field]");
   const saveMessage = document.querySelector("[data-save-message]");
   const commentsTab = document.querySelector("[data-comments-tab]");
+  const growthTab = document.querySelector("[data-growth-tab]");
   const postControls = document.querySelector("[data-post-controls]");
   const postEditor = document.querySelector("[data-post-editor]");
   const commentsManager = document.querySelector("[data-comments-manager]");
+  const growthManager = document.querySelector("[data-growth-manager]");
   const commentsList = document.querySelector("[data-admin-comments-list]");
   const commentsMessage = document.querySelector("[data-comments-message]");
   const contentTitle = document.querySelector("[data-content-title]");
@@ -27,20 +29,18 @@
   const sidebarToggle = document.querySelector("[data-sidebar-toggle]");
   const sidebarOverlay = document.querySelector("[data-sidebar-overlay]");
   const fieldSections = {
-    moment: document.querySelector("[data-moment-fields]"),
     weekly: document.querySelector("[data-weekly-fields]"),
     story: document.querySelector("[data-story-fields]"),
     photo: document.querySelector("[data-photo-fields]"),
   };
-  const kindLabels = { moment: "动态", weekly: "周报", story: "故事", photo: "照片" };
+  const kindLabels = { weekly: "周报", story: "故事", photo: "照片" };
   const kindDescriptions = {
-    moment: "记录正在发生的日常片段。",
     weekly: "整理每一周的学习、生活与思考。",
     story: "用时间节点讲述一段完整经历。",
     photo: "保存日常里值得被记住的画面。",
   };
 
-  let kind = "moment";
+  let kind = "weekly";
   let posts = [];
   let currentPost = null;
   let removedPaths = [];
@@ -59,6 +59,7 @@
     postControls.hidden = view !== "list";
     postEditor.hidden = view !== "editor";
     commentsManager.hidden = view !== "comments";
+    growthManager.hidden = view !== "growth";
     closeSidebar();
     window.scrollTo({ top: 0, behavior: "auto" });
   };
@@ -175,6 +176,7 @@
     kind = nextKind;
     currentPost = null;
     commentsTab.setAttribute("aria-current", "false");
+    growthTab.setAttribute("aria-current", "false");
     document.querySelectorAll("[data-kind-tab]").forEach((tab) => {
       tab.setAttribute("aria-current", tab.dataset.kindTab === kind ? "page" : "false");
     });
@@ -182,7 +184,7 @@
     contentTitle.textContent = kindLabels[kind];
     contentDescription.textContent = kindDescriptions[kind];
     Object.entries(fieldSections).forEach(([name, section]) => setSectionVisible(section, name === kind));
-    const showHappenedAt = kind === "moment" || kind === "weekly";
+    const showHappenedAt = kind === "weekly";
     happenedField.hidden = !showHappenedAt;
     postForm.elements.happened_at.disabled = !showHappenedAt;
     renderPostList();
@@ -276,9 +278,18 @@
 
   const showComments = async () => {
     document.querySelectorAll("[data-kind-tab]").forEach((tab) => tab.setAttribute("aria-current", "false"));
+    growthTab.setAttribute("aria-current", "false");
     commentsTab.setAttribute("aria-current", "page");
     showView("comments");
     await loadComments();
+  };
+
+  const showGrowth = () => {
+    document.querySelectorAll("[data-kind-tab]").forEach((tab) => tab.setAttribute("aria-current", "false"));
+    commentsTab.setAttribute("aria-current", "false");
+    growthTab.setAttribute("aria-current", "page");
+    showView("growth");
+    document.dispatchEvent(new CustomEvent("admin:growth-open"));
   };
 
   const resetEditor = () => {
@@ -292,7 +303,6 @@
     document.querySelector("[data-editor-kicker]").textContent = `新建${kindLabels[kind]}`;
     document.querySelector("[data-editor-title]").textContent = "尚未保存";
     document.querySelector("[data-delete-post]").hidden = true;
-    document.querySelector("[data-moment-existing-images]").replaceChildren();
     document.querySelector("[data-story-existing-cover]").replaceChildren();
     document.querySelector("[data-photo-existing-image]").replaceChildren();
     weeklySectionsRoot.replaceChildren();
@@ -312,7 +322,7 @@
         tab.setAttribute("aria-current", tab.dataset.kindTab === kind ? "page" : "false");
       });
       Object.entries(fieldSections).forEach(([name, section]) => setSectionVisible(section, name === kind));
-      const showHappenedAt = kind === "moment" || kind === "weekly";
+      const showHappenedAt = kind === "weekly";
       happenedField.hidden = !showHappenedAt;
       postForm.elements.happened_at.disabled = !showHappenedAt;
     }
@@ -322,7 +332,6 @@
     postForm.elements.status.value = post.status;
     postForm.elements.happened_at.value = toLocalInput(post.happened_at);
     postForm.elements.photo_date.value = toDateInput(post.happened_at);
-    postForm.elements.body.value = post.body || "";
     postForm.elements.title.value = post.title || "";
     postForm.elements.story_title.value = post.title || "";
     postForm.elements.story_summary.value = post.body || "";
@@ -332,9 +341,6 @@
     document.querySelector("[data-editor-title]").textContent = post.title || post.body?.slice(0, 30) || "未命名";
     document.querySelector("[data-delete-post]").hidden = false;
 
-    document.querySelector("[data-moment-existing-images]").replaceChildren(
-      ...(post.kind === "moment" ? post.images || [] : []).map((image) => makeImageChip(image)),
-    );
     document.querySelector("[data-story-existing-cover]").replaceChildren(
       ...(post.kind === "story" ? (post.images || []).slice(0, 1) : []).map((image) => makeImageChip(image)),
     );
@@ -596,24 +602,7 @@
     try {
       const status = postForm.elements.status.value;
       let payload;
-      if (kind === "moment") {
-        const body = postForm.elements.body.value.trim();
-        if (!body) throw new Error("请填写动态正文");
-        const existing = readExistingImages(document.querySelector("[data-moment-existing-images]"));
-        const uploaded = await uploadFiles([...postForm.elements.moment_images.files], `moment/${user.id}`);
-        payload = {
-          kind,
-          slug: currentPost?.slug || `moment-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
-          title: "",
-          body,
-          sections: [],
-          images: [...existing, ...uploaded],
-          status,
-          happened_at: new Date(postForm.elements.happened_at.value).toISOString(),
-          published_at: publishedAt(status),
-          sort_order: 0,
-        };
-      } else if (kind === "weekly") {
+      if (kind === "weekly") {
         const title = postForm.elements.title.value.trim();
         if (!title) throw new Error("请填写周报标题");
         const sections = await collectWeeklySections(user.id);
@@ -750,7 +739,7 @@
     studio.hidden = false;
     document.querySelector("[data-admin-email]").textContent = session.user.email;
     await loadPosts();
-    setKind("moment");
+    showGrowth();
     refreshIcons();
     return true;
   };
@@ -790,6 +779,7 @@
   document.querySelectorAll("[data-kind-tab]").forEach((tab) => {
     tab.addEventListener("click", () => setKind(tab.dataset.kindTab));
   });
+  growthTab.addEventListener("click", showGrowth);
   commentsTab.addEventListener("click", showComments);
   document.querySelector("[data-refresh-comments]").addEventListener("click", loadComments);
   document.querySelector("[data-new-post]").addEventListener("click", resetEditor);

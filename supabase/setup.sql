@@ -15,7 +15,7 @@ create table if not exists public.profiles (
 
 create table if not exists public.posts (
   id uuid primary key default gen_random_uuid(),
-  kind text not null check (kind in ('moment', 'weekly', 'story', 'photo')),
+  kind text not null check (kind in ('weekly', 'story', 'photo')),
   slug text not null,
   title text not null default '',
   body text not null default '',
@@ -47,9 +47,11 @@ alter table public.comments
 alter table public.posts
   add column if not exists sort_order integer not null default 0;
 
+delete from public.posts where kind = 'moment';
+
 alter table public.posts drop constraint if exists posts_kind_check;
 alter table public.posts
-  add constraint posts_kind_check check (kind in ('moment', 'weekly', 'story', 'photo'));
+  add constraint posts_kind_check check (kind in ('weekly', 'story', 'photo'));
 
 alter table public.comments drop constraint if exists comments_target_kind_check;
 update public.comments
@@ -615,3 +617,364 @@ create policy "Admins delete content media"
 on storage.objects for delete
 to authenticated
 using (bucket_id = 'content-media' and public.is_site_admin());
+
+delete from storage.objects
+where bucket_id = 'content-media'
+  and name like 'moment/%';
+
+create table if not exists public.growth_days (
+  record_date date primary key,
+  did_meaningful boolean not null default false,
+  made_breakthrough boolean not null default false,
+  private_note text not null default '' check (char_length(private_note) <= 1000),
+  color text check (color in ('moon', 'mist', 'pine', 'dusk', 'lilac')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.reward_cards (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null unique check (slug ~ '^[a-z0-9][a-z0-9-]{0,79}$'),
+  category text not null check (category in ('five-piece', 'robomaster')),
+  person_name text not null check (char_length(btrim(person_name)) between 1 and 80),
+  school_name text not null default '',
+  title text not null check (char_length(btrim(title)) between 1 and 120),
+  quote text not null default '' check (char_length(quote) <= 500),
+  source_label text not null default '',
+  source_url text not null default '',
+  image_query text not null default '',
+  image_url text not null default '',
+  collection_key text not null default '',
+  collection_title text not null default '',
+  piece_index integer not null default 0,
+  piece_count integer not null default 0,
+  full_image_url text not null default '',
+  sort_order integer not null default 0,
+  is_visible boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.growth_saved_cards (
+  id uuid primary key default gen_random_uuid(),
+  card_id uuid not null unique references public.reward_cards(id) on delete cascade,
+  earned_color text not null check (earned_color in ('moon', 'mist', 'pine', 'dusk', 'lilac')),
+  saved_year integer not null check (saved_year between 2023 and 9999),
+  draw_date date not null default ((now() at time zone 'Asia/Shanghai')::date),
+  saved_at timestamptz not null default now()
+);
+
+alter table public.reward_cards add column if not exists collection_key text not null default '';
+alter table public.reward_cards add column if not exists collection_title text not null default '';
+alter table public.reward_cards add column if not exists piece_index integer not null default 0;
+alter table public.reward_cards add column if not exists piece_count integer not null default 0;
+alter table public.reward_cards add column if not exists full_image_url text not null default '';
+delete from public.reward_cards where category = 'figure';
+alter table public.reward_cards drop constraint if exists reward_cards_category_check;
+alter table public.reward_cards
+  add constraint reward_cards_category_check check (category in ('five-piece', 'robomaster'));
+alter table public.reward_cards drop constraint if exists reward_cards_piece_shape_check;
+alter table public.reward_cards
+  add constraint reward_cards_piece_shape_check check (
+    category = 'robomaster'
+    or (
+      category = 'five-piece'
+      and collection_key <> ''
+      and collection_title <> ''
+      and piece_index between 1 and 5
+      and piece_count = 5
+      and full_image_url <> ''
+    )
+  );
+
+alter table public.growth_saved_cards add column if not exists draw_date date;
+update public.growth_saved_cards
+set draw_date = (saved_at at time zone 'Asia/Shanghai')::date
+where draw_date is null;
+alter table public.growth_saved_cards
+  alter column draw_date set default ((now() at time zone 'Asia/Shanghai')::date),
+  alter column draw_date set not null;
+create unique index if not exists growth_saved_cards_one_per_day_idx
+  on public.growth_saved_cards (draw_date);
+
+create table if not exists public.growth_redemptions (
+  id uuid primary key default gen_random_uuid(),
+  color text not null check (color in ('moon', 'mist', 'pine', 'dusk', 'lilac')),
+  group_index integer not null check (group_index > 0),
+  saved_card_id uuid not null unique references public.growth_saved_cards(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  unique (color, group_index)
+);
+
+insert into public.reward_cards (
+  slug, category, person_name, school_name, title, quote,
+  source_label, source_url, image_query, image_url,
+  collection_key, collection_title, piece_index, piece_count, full_image_url,
+  sort_order, is_visible
+)
+values
+  ('five-road-underfoot-01', 'five-piece', '鲁迅', '', '路在脚下', '', '五联卡合集', '', '', '/media/growth-cards/road-underfoot/01.png', 'road-underfoot', '路在脚下', 1, 5, '/media/growth-cards/road-underfoot/full.png', 0, true),
+  ('five-road-underfoot-02', 'five-piece', '老子', '', '路在脚下', '', '五联卡合集', '', '', '/media/growth-cards/road-underfoot/02.png', 'road-underfoot', '路在脚下', 2, 5, '/media/growth-cards/road-underfoot/full.png', 1, true),
+  ('five-road-underfoot-03', 'five-piece', '陆游', '', '路在脚下', '', '五联卡合集', '', '', '/media/growth-cards/road-underfoot/03.png', 'road-underfoot', '路在脚下', 3, 5, '/media/growth-cards/road-underfoot/full.png', 2, true),
+  ('five-road-underfoot-04', 'five-piece', '王阳明', '', '路在脚下', '', '五联卡合集', '', '', '/media/growth-cards/road-underfoot/04.png', 'road-underfoot', '路在脚下', 4, 5, '/media/growth-cards/road-underfoot/full.png', 3, true),
+  ('five-road-underfoot-05', 'five-piece', '陶行知', '', '路在脚下', '', '五联卡合集', '', '', '/media/growth-cards/road-underfoot/05.png', 'road-underfoot', '路在脚下', 5, 5, '/media/growth-cards/road-underfoot/full.png', 4, true),
+  ('five-living-water-01', 'five-piece', '孔子', '', '学问如活水', '', '五联卡合集', '', '', '/media/growth-cards/living-water/01.png', 'living-water', '学问如活水', 1, 5, '/media/growth-cards/living-water/full.png', 10, true),
+  ('five-living-water-02', 'five-piece', '荀子', '', '学问如活水', '', '五联卡合集', '', '', '/media/growth-cards/living-water/02.png', 'living-water', '学问如活水', 2, 5, '/media/growth-cards/living-water/full.png', 11, true),
+  ('five-living-water-03', 'five-piece', '韩愈', '', '学问如活水', '', '五联卡合集', '', '', '/media/growth-cards/living-water/03.png', 'living-water', '学问如活水', 3, 5, '/media/growth-cards/living-water/full.png', 12, true),
+  ('five-living-water-04', 'five-piece', '叶圣陶', '', '学问如活水', '', '五联卡合集', '', '', '/media/growth-cards/living-water/04.png', 'living-water', '学问如活水', 4, 5, '/media/growth-cards/living-water/full.png', 13, true),
+  ('five-living-water-05', 'five-piece', '朱熹', '', '学问如活水', '', '五联卡合集', '', '', '/media/growth-cards/living-water/05.png', 'living-water', '学问如活水', 5, 5, '/media/growth-cards/living-water/full.png', 14, true),
+  ('five-aim-high-01', 'five-piece', '曹操', '', '志在高处', '', '五联卡合集', '', '', '/media/growth-cards/aim-high/01.png', 'aim-high', '志在高处', 1, 5, '/media/growth-cards/aim-high/full.png', 20, true),
+  ('five-aim-high-02', 'five-piece', '王勃', '', '志在高处', '', '五联卡合集', '', '', '/media/growth-cards/aim-high/02.png', 'aim-high', '志在高处', 2, 5, '/media/growth-cards/aim-high/full.png', 21, true),
+  ('five-aim-high-03', 'five-piece', '王之涣', '', '志在高处', '', '五联卡合集', '', '', '/media/growth-cards/aim-high/03.png', 'aim-high', '志在高处', 3, 5, '/media/growth-cards/aim-high/full.png', 22, true),
+  ('five-aim-high-04', 'five-piece', '杜甫', '', '志在高处', '', '五联卡合集', '', '', '/media/growth-cards/aim-high/04.png', 'aim-high', '志在高处', 4, 5, '/media/growth-cards/aim-high/full.png', 23, true),
+  ('five-aim-high-05', 'five-piece', '李贺', '', '志在高处', '', '五联卡合集', '', '', '/media/growth-cards/aim-high/05.png', 'aim-high', '志在高处', 5, 5, '/media/growth-cards/aim-high/full.png', 24, true),
+  ('five-tempered-light-01', 'five-piece', '毛泽东', '', '磨砺成光', '', '五联卡合集', '', '', '/media/growth-cards/tempered-light/01.png', 'tempered-light', '磨砺成光', 1, 5, '/media/growth-cards/tempered-light/full.png', 30, true),
+  ('five-tempered-light-02', 'five-piece', '孟子', '', '磨砺成光', '', '五联卡合集', '', '', '/media/growth-cards/tempered-light/02.png', 'tempered-light', '磨砺成光', 2, 5, '/media/growth-cards/tempered-light/full.png', 31, true),
+  ('five-tempered-light-03', 'five-piece', '李白', '', '磨砺成光', '', '五联卡合集', '', '', '/media/growth-cards/tempered-light/03.png', 'tempered-light', '磨砺成光', 3, 5, '/media/growth-cards/tempered-light/full.png', 32, true),
+  ('five-tempered-light-04', 'five-piece', '刘禹锡', '', '磨砺成光', '', '五联卡合集', '', '', '/media/growth-cards/tempered-light/04.png', 'tempered-light', '磨砺成光', 4, 5, '/media/growth-cards/tempered-light/full.png', 33, true),
+  ('five-tempered-light-05', 'five-piece', '郑燮', '', '磨砺成光', '', '五联卡合集', '', '', '/media/growth-cards/tempered-light/05.png', 'tempered-light', '磨砺成光', 5, 5, '/media/growth-cards/tempered-light/full.png', 34, true),
+  ('five-world-at-heart-01', 'five-piece', '范仲淹', '', '心怀天下', '', '五联卡合集', '', '', '/media/growth-cards/world-at-heart/01.png', 'world-at-heart', '心怀天下', 1, 5, '/media/growth-cards/world-at-heart/full.png', 40, true),
+  ('five-world-at-heart-02', 'five-piece', '张载', '', '心怀天下', '', '五联卡合集', '', '', '/media/growth-cards/world-at-heart/02.png', 'world-at-heart', '心怀天下', 2, 5, '/media/growth-cards/world-at-heart/full.png', 41, true),
+  ('five-world-at-heart-03', 'five-piece', '顾炎武', '', '心怀天下', '', '五联卡合集', '', '', '/media/growth-cards/world-at-heart/03.png', 'world-at-heart', '心怀天下', 3, 5, '/media/growth-cards/world-at-heart/full.png', 42, true),
+  ('five-world-at-heart-04', 'five-piece', '林则徐', '', '心怀天下', '', '五联卡合集', '', '', '/media/growth-cards/world-at-heart/04.png', 'world-at-heart', '心怀天下', 4, 5, '/media/growth-cards/world-at-heart/full.png', 43, true),
+  ('five-world-at-heart-05', 'five-piece', '梁启超', '', '心怀天下', '', '五联卡合集', '', '', '/media/growth-cards/world-at-heart/05.png', 'world-at-heart', '心怀天下', 5, 5, '/media/growth-cards/world-at-heart/full.png', 44, true),
+  ('five-steadfast-character-01', 'five-piece', '墨子', '', '风骨自成', '', '五联卡合集', '', '', '/media/growth-cards/steadfast-character/01.png', 'steadfast-character', '风骨自成', 1, 5, '/media/growth-cards/steadfast-character/full.png', 50, true),
+  ('five-steadfast-character-02', 'five-piece', '白居易', '', '风骨自成', '', '五联卡合集', '', '', '/media/growth-cards/steadfast-character/02.png', 'steadfast-character', '风骨自成', 2, 5, '/media/growth-cards/steadfast-character/full.png', 51, true),
+  ('five-steadfast-character-03', 'five-piece', '于谦', '', '风骨自成', '', '五联卡合集', '', '', '/media/growth-cards/steadfast-character/03.png', 'steadfast-character', '风骨自成', 3, 5, '/media/growth-cards/steadfast-character/full.png', 52, true),
+  ('five-steadfast-character-04', 'five-piece', '张衡', '', '风骨自成', '', '五联卡合集', '', '', '/media/growth-cards/steadfast-character/04.png', 'steadfast-character', '风骨自成', 4, 5, '/media/growth-cards/steadfast-character/full.png', 53, true),
+  ('five-steadfast-character-05', 'five-piece', '王冕', '', '风骨自成', '', '五联卡合集', '', '', '/media/growth-cards/steadfast-character/05.png', 'steadfast-character', '风骨自成', 5, 5, '/media/growth-cards/steadfast-character/full.png', 54, true),
+  ('five-devotion-01', 'five-piece', '文天祥', '', '赤诚与奉献', '', '五联卡合集', '', '', '/media/growth-cards/devotion/01.png', 'devotion', '赤诚与奉献', 1, 5, '/media/growth-cards/devotion/full.png', 60, true),
+  ('five-devotion-02', 'five-piece', '顾宪成', '', '赤诚与奉献', '', '五联卡合集', '', '', '/media/growth-cards/devotion/02.png', 'devotion', '赤诚与奉献', 2, 5, '/media/growth-cards/devotion/full.png', 61, true),
+  ('five-devotion-03', 'five-piece', '巴金', '', '赤诚与奉献', '', '五联卡合集', '', '', '/media/growth-cards/devotion/03.png', 'devotion', '赤诚与奉献', 3, 5, '/media/growth-cards/devotion/full.png', 62, true),
+  ('five-devotion-04', 'five-piece', '秋瑾', '', '赤诚与奉献', '', '五联卡合集', '', '', '/media/growth-cards/devotion/04.png', 'devotion', '赤诚与奉献', 4, 5, '/media/growth-cards/devotion/full.png', 63, true),
+  ('five-devotion-05', 'five-piece', '戚继光', '', '赤诚与奉献', '', '五联卡合集', '', '', '/media/growth-cards/devotion/05.png', 'devotion', '赤诚与奉献', 5, 5, '/media/growth-cards/devotion/full.png', 64, true),
+  ('five-inner-light-01', 'five-piece', '屈原', '', '内心自有光', '', '五联卡合集', '', '', '/media/growth-cards/inner-light/01.png', 'inner-light', '内心自有光', 1, 5, '/media/growth-cards/inner-light/full.png', 70, true),
+  ('five-inner-light-02', 'five-piece', '诸葛亮', '', '内心自有光', '', '五联卡合集', '', '', '/media/growth-cards/inner-light/02.png', 'inner-light', '内心自有光', 2, 5, '/media/growth-cards/inner-light/full.png', 71, true),
+  ('five-inner-light-03', 'five-piece', '龚自珍', '', '内心自有光', '', '五联卡合集', '', '', '/media/growth-cards/inner-light/03.png', 'inner-light', '内心自有光', 3, 5, '/media/growth-cards/inner-light/full.png', 72, true),
+  ('five-inner-light-04', 'five-piece', '林徽因', '', '内心自有光', '', '五联卡合集', '', '', '/media/growth-cards/inner-light/04.png', 'inner-light', '内心自有光', 4, 5, '/media/growth-cards/inner-light/full.png', 73, true),
+  ('five-inner-light-05', 'five-piece', '李清照', '', '内心自有光', '', '五联卡合集', '', '', '/media/growth-cards/inner-light/05.png', 'inner-light', '内心自有光', 5, 5, '/media/growth-cards/inner-light/full.png', 74, true)
+on conflict (slug) do update set
+  category = excluded.category,
+  person_name = excluded.person_name,
+  title = excluded.title,
+  quote = excluded.quote,
+  source_label = excluded.source_label,
+  source_url = excluded.source_url,
+  image_query = excluded.image_query,
+  image_url = excluded.image_url,
+  collection_key = excluded.collection_key,
+  collection_title = excluded.collection_title,
+  piece_index = excluded.piece_index,
+  piece_count = excluded.piece_count,
+  full_image_url = excluded.full_image_url,
+  sort_order = excluded.sort_order,
+  is_visible = excluded.is_visible,
+  updated_at = now();
+
+create or replace function public.validate_growth_day()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  today_in_beijing date := (now() at time zone 'Asia/Shanghai')::date;
+  palette text[] := array['moon', 'mist', 'pine', 'dusk', 'lilac'];
+begin
+  if not public.is_site_admin() then
+    raise exception 'Only the site administrator can edit growth days'
+      using errcode = '42501';
+  end if;
+  if new.record_date not in (today_in_beijing, today_in_beijing - 1) then
+    raise exception 'Only today and yesterday can be edited';
+  end if;
+  new.private_note := btrim(coalesce(new.private_note, ''));
+  new.updated_at := now();
+  if tg_op = 'UPDATE' then
+    new.color := old.color;
+  elsif (new.did_meaningful or new.made_breakthrough) and new.color is null then
+    new.color := palette[1 + floor(random() * array_length(palette, 1))::integer];
+  end if;
+  return new;
+end;
+$$;
+
+revoke all on function public.validate_growth_day() from public;
+drop trigger if exists growth_days_validate_before_write on public.growth_days;
+create trigger growth_days_validate_before_write
+before insert or update on public.growth_days
+for each row execute function public.validate_growth_day();
+
+drop trigger if exists reward_cards_touch_updated_at on public.reward_cards;
+create trigger reward_cards_touch_updated_at
+before update on public.reward_cards
+for each row execute function public.touch_updated_at();
+
+create or replace view public.public_growth_days as
+select record_date, color
+from public.growth_days
+where (did_meaningful or made_breakthrough)
+  and color is not null;
+
+create or replace view public.public_saved_growth_cards as
+select
+  saved.id as saved_id,
+  saved.saved_year,
+  saved.draw_date,
+  saved.saved_at,
+  saved.earned_color,
+  cards.id,
+  cards.slug,
+  cards.category,
+  cards.person_name,
+  cards.school_name,
+  cards.title,
+  cards.quote,
+  cards.source_label,
+  cards.source_url,
+  cards.image_query,
+  cards.image_url,
+  cards.collection_key,
+  cards.collection_title,
+  cards.piece_index,
+  cards.piece_count,
+  cards.full_image_url,
+  cards.sort_order
+from public.growth_saved_cards as saved
+join public.reward_cards as cards on cards.id = saved.card_id;
+
+create or replace function public.growth_reward_status()
+returns table (color text, lit_count bigint, redeemed_count bigint, available_count bigint)
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_site_admin() then
+    raise exception 'Only the site administrator can view reward balances'
+      using errcode = '42501';
+  end if;
+  return query
+  with palette(color) as (
+    values ('moon'::text), ('mist'), ('pine'), ('dusk'), ('lilac')
+  ), lit as (
+    select growth_days.color, count(*) as count
+    from public.growth_days
+    where (did_meaningful or made_breakthrough) and growth_days.color is not null
+    group by growth_days.color
+  ), redeemed as (
+    select growth_redemptions.color, count(*) as count
+    from public.growth_redemptions
+    group by growth_redemptions.color
+  )
+  select
+    palette.color,
+    coalesce(lit.count, 0)::bigint,
+    coalesce(redeemed.count, 0)::bigint,
+    greatest(0, floor(coalesce(lit.count, 0) / 5.0)::bigint - coalesce(redeemed.count, 0)::bigint)
+  from palette
+  left join lit using (color)
+  left join redeemed using (color);
+end;
+$$;
+
+drop function if exists public.save_growth_card(uuid, text);
+drop function if exists public.save_growth_card(uuid, text, date);
+create function public.save_growth_card(p_card_id uuid, p_color text, p_draw_date date)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  lit_total bigint;
+  redeemed_total bigint;
+  saved_id uuid;
+  next_group integer;
+  today_in_beijing date := (now() at time zone 'Asia/Shanghai')::date;
+begin
+  if not public.is_site_admin() then
+    raise exception 'Only the site administrator can save cards'
+      using errcode = '42501';
+  end if;
+  if p_color not in ('moon', 'mist', 'pine', 'dusk', 'lilac') then
+    raise exception 'Unknown growth color';
+  end if;
+  if p_draw_date <> today_in_beijing then
+    raise exception 'Only today''s drawn card can be saved';
+  end if;
+  perform pg_advisory_xact_lock(hashtext('growth-save-day-' || p_draw_date::text));
+  if exists (select 1 from public.growth_saved_cards where draw_date = p_draw_date) then
+    return jsonb_build_object('status', 'day-used');
+  end if;
+  if exists (select 1 from public.growth_saved_cards where card_id = p_card_id) then
+    return jsonb_build_object('status', 'duplicate');
+  end if;
+  if not exists (select 1 from public.reward_cards where id = p_card_id and is_visible) then
+    raise exception 'The card does not exist or is hidden';
+  end if;
+  perform pg_advisory_xact_lock(hashtext('growth-reward-' || p_color));
+  select count(*) into lit_total
+  from public.growth_days
+  where color = p_color and (did_meaningful or made_breakthrough);
+  select count(*) into redeemed_total
+  from public.growth_redemptions
+  where color = p_color;
+  if floor(lit_total / 5.0) <= redeemed_total then
+    raise exception 'No reward balance is available for this color';
+  end if;
+  next_group := redeemed_total + 1;
+  insert into public.growth_saved_cards (card_id, earned_color, saved_year, draw_date)
+  values (p_card_id, p_color, extract(year from p_draw_date)::integer, p_draw_date)
+  returning id into saved_id;
+  insert into public.growth_redemptions (color, group_index, saved_card_id)
+  values (p_color, next_group, saved_id);
+  return jsonb_build_object('status', 'saved', 'saved_id', saved_id);
+end;
+$$;
+
+revoke all on function public.growth_reward_status() from public;
+grant execute on function public.growth_reward_status() to authenticated;
+revoke all on function public.save_growth_card(uuid, text, date) from public;
+grant execute on function public.save_growth_card(uuid, text, date) to authenticated;
+
+alter table public.growth_days enable row level security;
+alter table public.reward_cards enable row level security;
+alter table public.growth_saved_cards enable row level security;
+alter table public.growth_redemptions enable row level security;
+
+drop policy if exists "Admins read growth days" on public.growth_days;
+create policy "Admins read growth days" on public.growth_days for select to authenticated using (public.is_site_admin());
+drop policy if exists "Admins create growth days" on public.growth_days;
+create policy "Admins create growth days" on public.growth_days for insert to authenticated with check (public.is_site_admin());
+drop policy if exists "Admins update growth days" on public.growth_days;
+create policy "Admins update growth days" on public.growth_days for update to authenticated using (public.is_site_admin()) with check (public.is_site_admin());
+
+drop policy if exists "Public reads visible reward cards" on public.reward_cards;
+create policy "Public reads visible reward cards" on public.reward_cards for select to anon, authenticated using (is_visible or public.is_site_admin());
+drop policy if exists "Admins create reward cards" on public.reward_cards;
+create policy "Admins create reward cards" on public.reward_cards for insert to authenticated with check (public.is_site_admin());
+drop policy if exists "Admins update reward cards" on public.reward_cards;
+create policy "Admins update reward cards" on public.reward_cards for update to authenticated using (public.is_site_admin()) with check (public.is_site_admin());
+drop policy if exists "Admins delete reward cards" on public.reward_cards;
+create policy "Admins delete reward cards" on public.reward_cards for delete to authenticated using (public.is_site_admin());
+
+drop policy if exists "Admins read saved growth cards" on public.growth_saved_cards;
+create policy "Admins read saved growth cards" on public.growth_saved_cards for select to authenticated using (public.is_site_admin());
+drop policy if exists "Admins read growth redemptions" on public.growth_redemptions;
+create policy "Admins read growth redemptions" on public.growth_redemptions for select to authenticated using (public.is_site_admin());
+
+revoke all on table public.growth_days from anon, authenticated;
+grant select, insert, update on table public.growth_days to authenticated;
+revoke all on table public.reward_cards from anon, authenticated;
+grant select on table public.reward_cards to anon, authenticated;
+grant insert, update, delete on table public.reward_cards to authenticated;
+revoke all on table public.growth_saved_cards from anon, authenticated;
+grant select on table public.growth_saved_cards to authenticated;
+revoke all on table public.growth_redemptions from anon, authenticated;
+grant select on table public.growth_redemptions to authenticated;
+revoke all on table public.public_growth_days from anon, authenticated;
+grant select on table public.public_growth_days to anon, authenticated;
+revoke all on table public.public_saved_growth_cards from anon, authenticated;
+grant select on table public.public_saved_growth_cards to anon, authenticated;

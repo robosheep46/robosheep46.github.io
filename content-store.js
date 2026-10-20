@@ -347,13 +347,9 @@
 
   async function hydrateHome() {
     const weeklyTargets = document.querySelectorAll("[data-latest-weekly-title]");
-    const momentTargets = document.querySelectorAll("[data-latest-moment-text]");
-    if (!weeklyTargets.length && !momentTargets.length) return;
+    if (!weeklyTargets.length) return;
 
-    const [weeklies, moments] = await Promise.all([
-      weeklyTargets.length ? listPublished("weekly") : Promise.resolve([]),
-      momentTargets.length ? listPublished("moment") : Promise.resolve([]),
-    ]);
+    const weeklies = await listPublished("weekly");
 
     const weekly = weeklies[0];
     if (weekly) {
@@ -365,24 +361,6 @@
       });
       document.querySelectorAll("[data-latest-weekly-summary]").forEach((node) => {
         node.textContent = summaryFromSections(weekly.sections);
-      });
-    }
-
-    const moment = moments[0];
-    if (moment) {
-      document.querySelectorAll("[data-latest-moment-text]").forEach((node) => {
-        node.textContent = moment.body;
-      });
-      document.querySelectorAll("[data-latest-moment-date]").forEach((node) => {
-        node.textContent = dateLabel(moment.happened_at);
-      });
-      document.querySelectorAll("[data-latest-moment-images]").forEach((node) => {
-        node.replaceChildren(...moment.images.slice(0, 2).map((image) => {
-          const img = document.createElement("img");
-          img.src = typeof image === "string" ? image : image.url;
-          img.alt = "";
-          return img;
-        }));
       });
     }
   }

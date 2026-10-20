@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="robosheep 的成长墙：把每个有意义的日子，慢慢点亮。" />
+    <meta name="theme-color" content="#07101c" />
+    <title>成长墙｜robosheep 的小站</title>
+    <link rel="stylesheet" href="../styles.css?v=113" />
+    <script src="../site-config.js?v=2" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="../content-store.js?v=6" defer></script>
+    <script src="../growth-cards.js?v=2" defer></script>
+    <script src="../growth-team-cards.js?v=2" defer></script>
+    <script src="../growth.js?v=7" defer></script>
+    <script src="../script.js?v=38" defer></script>
+  </head>
+  <body class="paper-page immersive-page growth-page" style="--inner-banner: url('../media/opening.jpg?v=13')">
+    <a class="skip-link" href="#growth-wall">跳到成长墙</a>
+    <header class="topbar topbar-paper">
+      <a class="brand" href="../index.html">robosheep 的小站</a>
+      <a class="top-link" href="../index.html#home-hub">返回首页</a>
+    </header>
+
+    <main class="growth-shell" id="growth-wall">
+      <header class="growth-head entry-band">
+        <p class="paper-eyebrow">GROWTH WALL</p>
+        <h1>成长墙</h1>
+        <p>把每个有意义的日子，慢慢点亮。</p>
+      </header>
+
+      <section class="growth-panel growth-calendar-panel" aria-labelledby="growth-calendar-title">
+        <header class="growth-section-head">
+          <div>
+            <p>DAILY LIGHTS</p>
+            <h2 id="growth-calendar-title">这一年的微光</h2>
+          </div>
+          <label class="growth-year-control">
+            <span>年份</span>
+            <select data-growth-year aria-label="选择年份"></select>
+          </label>
+        </header>
+        <div class="growth-stats" aria-live="polite">
+          <p><strong data-growth-lit-count>0</strong><span>点亮天数</span></p>
+          <p><strong data-growth-current-streak>0</strong><span>当前连续</span></p>
+          <p><strong data-growth-best-streak>0</strong><span>最长连续</span></p>
+        </div>
+        <div class="growth-calendar-scroll">
+          <div class="growth-months" aria-hidden="true"><span>一月</span><span>三月</span><span>五月</span><span>七月</span><span>九月</span><span>十一月</span></div>
+          <div class="growth-calendar" data-growth-calendar role="grid" aria-label="年度成长记录"></div>
+        </div>
+        <div class="growth-legend" aria-label="成长墙颜色说明">
+          <span>五种微光</span>
+          <i class="is-moon" title="月光金"></i><i class="is-mist" title="雾霭蓝"></i><i class="is-pine" title="松针绿"></i><i class="is-dusk" title="暮色粉"></i><i class="is-lilac" title="淡紫灰"></i>
+        </div>
+      </section>
+
+      <section class="growth-panel growth-badges-panel" aria-labelledby="growth-badges-title">
+        <header class="growth-section-head">
+          <div>
+            <p>MILESTONES</p>
+            <h2 id="growth-badges-title">慢慢成为光</h2>
+          </div>
+          <span data-growth-total>累计点亮 0 天</span>
+        </header>
+        <div class="growth-badges" data-growth-badges></div>
+      </section>
+
+      <section class="growth-panel growth-draw-panel" aria-label="五联卡抽取">
+        <div class="draw-pools">
+          <article class="draw-machine" data-draw-machine="five-piece">
+            <header>
+              <div><span>FIVE-PIECE</span><h3>五联卡池</h3></div>
+              <strong>40 张</strong>
+            </header>
+            <div class="draw-machine-marquee" aria-hidden="true">
+              <i></i><strong>FIVE-PIECE DRAW</strong><i></i>
+            </div>
+            <div class="draw-machine-body">
+              <div class="draw-card-slot" data-draw-card="five-piece" aria-live="polite">
+                <div class="draw-placeholder">
+                  <div class="draw-card-stack" aria-hidden="true"><i></i><i></i><i></i></div>
+                  <span>READY</span>
+                  <strong>今日一抽</strong>
+                </div>
+              </div>
+              <div class="draw-machine-controls">
+                <button type="button" class="draw-lever" data-draw-button="five-piece" aria-label="拉动抽签杆">
+                  <span class="draw-lever-knob" aria-hidden="true"></span>
+                  <span class="draw-lever-base" aria-hidden="true"></span>
+                  <strong data-draw-action-label>抽取</strong>
+                </button>
+                <button type="button" class="draw-start" data-draw-button="five-piece">
+                  <strong data-draw-action-label>开始抽取</strong>
+                </button>
+              </div>
+            </div>
+            <footer><span>今日状态</span><strong data-draw-status="five-piece">尚未抽取</strong></footer>
+          </article>
+        </div>
+
+        <p class="draw-message" data-draw-message aria-live="polite"></p>
+      </section>
+
+      <section class="growth-panel growth-collection-panel" aria-labelledby="growth-collection-title">
+        <header class="growth-section-head">
+          <div>
+            <p>FIVE-PIECE COLLECTION</p>
+            <h2 id="growth-collection-title">五联卡图鉴</h2>
+          </div>
+          <span><strong data-collection-count>0</strong> / 40 · 已完成 <strong data-complete-count>0</strong> / 8</span>
+        </header>
+        <div class="five-piece-collections" data-five-piece-collections></div>
+      </section>
+
+      <section class="growth-panel growth-card-wall" aria-labelledby="growth-card-wall-title">
+        <header class="growth-section-head">
+          <div>
+            <p>COLLECTED LIGHT</p>
+            <h2 id="growth-card-wall-title">年度卡片墙</h2>
+          </div>
+          <label class="growth-year-control">
+            <span>收藏年份</span>
+            <select data-saved-year aria-label="选择卡片收藏年份"></select>
+          </label>
+        </header>
+        <div class="saved-card-grid" data-saved-cards>
+          <p class="growth-empty">还没有收藏卡片。先把日子慢慢点亮吧。</p>
+        </div>
+      </section>
+    </main>
+
+    <dialog class="draw-result-dialog" data-draw-result-dialog>
+      <button class="draw-result-close" type="button" data-close-draw-result aria-label="关闭抽卡结果" title="关闭">×</button>
+      <div class="draw-result-media" data-draw-result-media>
+        <div class="draw-result-loading" aria-live="polite">
+          <i aria-hidden="true"></i>
+          <span data-draw-result-loading>卡片正在出现</span>
+        </div>
+        <img data-draw-result-image alt="" />
+      </div>
+      <div class="draw-result-copy">
+        <p>TODAY'S CARD</p>
+        <h2 data-draw-result-name></h2>
+        <span data-draw-result-meta></span>
+      </div>
+    </dialog>
+
+    <dialog class="full-art-dialog" data-full-art-dialog>
+      <button type="button" data-close-full-art aria-label="关闭整画">关闭</button>
+      <p data-full-art-title></p>
+      <img data-full-art-image alt="" />
+    </dialog>
+
+    <footer class="paper-foot">
+      <a href="../index.html#home-hub">返回首页</a>
+      <span>robosheep 的小站</span>
+    </footer>
+  </body>
+</html>
