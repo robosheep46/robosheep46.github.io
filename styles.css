@@ -1770,12 +1770,17 @@ body.is-route-leaving > .topbar {
   overflow-wrap: anywhere;
 }
 
-.hub-card-copy > p:last-child {
+.hub-card-copy > p:last-child,
+.hub-card-detail {
   max-width: 30em;
   margin: 9px 0 0;
   color: rgba(244, 239, 230, 0.76);
   font-size: 13px;
   line-height: 1.55;
+}
+
+.hub-card-detail + .hub-card-detail {
+  margin-top: 2px;
 }
 
 .hub-arrow {
@@ -1802,10 +1807,6 @@ body.is-route-leaving > .topbar {
 .hub-archive {
   grid-column: 4 / 10;
   grid-row: 1 / 3;
-}
-
-.hub-archive h2 {
-  font-size: 33px;
 }
 
 .hub-archive > img {
@@ -1838,11 +1839,6 @@ body.is-route-leaving > .topbar {
 
 .hub-weekly > img {
   filter: saturate(0.72) brightness(0.78);
-}
-
-.hub-weekly h2 {
-  max-width: 18em;
-  font-size: 25px;
 }
 
 .hub-life {
@@ -2055,14 +2051,6 @@ body.is-route-leaving > .topbar {
 
   .hub-moments {
     min-height: 190px;
-  }
-
-  .hub-archive h2 {
-    font-size: 29px;
-  }
-
-  .hub-weekly h2 {
-    font-size: 23px;
   }
 
   .hub-status {
@@ -6256,16 +6244,8 @@ body.is-route-leaving > .topbar {
   background: linear-gradient(to bottom, transparent, rgba(7, 22, 43, 0.92) 48%);
 }
 
-.hub-growth .hub-overline {
-  margin-bottom: 3px;
-  font-size: 10px;
-}
-
 .hub-growth h2 {
-  color: rgba(244, 239, 230, 0.74);
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 1.55;
+  color: #f7f4ed;
 }
 
 .hub-growth-mini {
